@@ -4,75 +4,12 @@ import AddProductDrawer from "./AddProductDrawer";
 import ViewProductModal from "./ViewProductModal";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import Toast from "./Toast";
+import { getProducts, createProduct, updateProduct, deleteProduct, uploadProductImage } from "../../../lib/api";
 
 const CATEGORIES = ["All Categories", "Furniture", "Rugs", "Office", "Artificial Grass", "Other"];
 const STATUSES = ["All Status", "In Stock", "Low Stock", "Out of Stock", "Draft"];
 
-const INITIAL_PRODUCTS = [
-  {
-    id: "PRD-101",
-    image: "https://images.unsplash.com/photo-1540574163026-643ea20ade25?auto=format&fit=crop&q=80&w=150",
-    name: "Royal Leather Sofa Set",
-    category: "Furniture",
-    description: "Premium Italian leather sofa set with solid wood frame. Seats 5 comfortably. Available in brown, black, and tan.",
-    price: "₦1,450,000",
-    priceUnit: "per set",
-    stock: 45,
-    status: "In Stock",
-    tags: ["Best Seller", "Featured"],
-  },
-  {
-    id: "PRD-102",
-    image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=150",
-    name: "Imported Persian Rug (6×9ft)",
-    category: "Rugs",
-    description: "Hand-knotted Persian rug made from 100% wool. Traditional medallion design with rich color palette.",
-    price: "₦380,000",
-    priceUnit: "per piece",
-    stock: 12,
-    status: "Low Stock",
-    tags: ["New Arrival"],
-  },
-  {
-    id: "PRD-103",
-    image: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&q=80&w=150",
-    name: "Executive High-Back Chair",
-    category: "Office",
-    description: "Ergonomic high-back office chair with lumbar support, adjustable armrests, and breathable mesh back.",
-    price: "₦195,000",
-    priceUnit: "per piece",
-    stock: 0,
-    status: "Out of Stock",
-    tags: [],
-  },
-  {
-    id: "PRD-104",
-    image: "https://images.unsplash.com/photo-1558603668-6570496b66f8?auto=format&fit=crop&q=80&w=150",
-    name: "Premium Artificial Grass",
-    category: "Artificial Grass",
-    description: "High-density 40mm artificial turf, UV-resistant, pet-friendly. Ideal for gardens, playgrounds, and balconies.",
-    price: "₦7,000",
-    priceUnit: "per sqm",
-    stock: 120,
-    status: "In Stock",
-    tags: ["Featured"],
-  },
-  {
-    id: "PRD-105",
-    image: "https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&q=80&w=150",
-    name: "Solid Wood Dining Table",
-    category: "Furniture",
-    description: "6-seater solid mahogany dining table with natural finish. Handcrafted by local artisans.",
-    price: "₦299,000",
-    priceUnit: "per piece",
-    stock: 28,
-    status: "In Stock",
-    tags: ["New Arrival", "Best Seller"],
-  },
-];
-
-const ProductsTable = () => {
-  const [products, setProducts] = useState(INITIAL_PRODUCTS);
+const ProductsTable = ({ products, loading, fetchProducts }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editProduct, setEditProduct] = useState(null);
   const [viewProduct, setViewProduct] = useState(null);
@@ -87,6 +24,8 @@ const ProductsTable = () => {
 
   const categoryRef = useRef(null);
   const filterRef = useRef(null);
+
+
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -106,8 +45,9 @@ const ProductsTable = () => {
   const filteredProducts = products.filter((product) => {
     const matchesCategory =
       selectedCategory === "All Categories" || product.category === selectedCategory;
+    const statusVal = product.status || product.availability || "In Stock";
     const matchesStatus =
-      selectedStatus === "All Status" || product.status === selectedStatus;
+      selectedStatus === "All Status" || statusVal === selectedStatus;
     return matchesCategory && matchesStatus;
   });
 
@@ -132,23 +72,37 @@ const ProductsTable = () => {
 
   // ── Actions ──
 
-  const handleSaveProduct = (product, isDraft, isEdit) => {
-    if (isEdit) {
-      setProducts((prev) =>
-        prev.map((p) => (p.id === product.id ? product : p))
-      );
-      setToast({
-        visible: true,
-        message: "Product updated successfully!",
-        type: "success",
-      });
-    } else {
-      setProducts((prev) => [product, ...prev]);
-      setToast({
-        visible: true,
-        message: isDraft ? "Product saved as draft." : "Product saved successfully!",
-        type: isDraft ? "draft" : "success",
-      });
+  const handleSaveProduct = async (productData, isDraft, isEdit) => {
+    try {
+      let imageUrl = productData.image;
+      
+      // If there is a new file attached, upload it first
+      if (productData.imageFile) {
+        setToast({ visible: true, message: "Uploading image...", type: "success" });
+        imageUrl = await uploadProductImage(productData.imageFile);
+      }
+
+      // We remove fields not present in DB schema before saving
+      const dbPayload = {
+        name: productData.name,
+        description: productData.description,
+        category: productData.category,
+        price: typeof productData.price === 'string' ? Number(productData.price.replace(/[^0-9.-]+/g,"")) : productData.price,
+        availability: productData.status,
+        image_url: imageUrl,
+      };
+
+      if (isEdit) {
+        await updateProduct(productData.id, dbPayload);
+        setToast({ visible: true, message: "Product updated successfully!", type: "success" });
+      } else {
+        await createProduct(dbPayload);
+        setToast({ visible: true, message: isDraft ? "Product saved as draft." : "Product saved successfully!", type: isDraft ? "draft" : "success" });
+      }
+      fetchProducts();
+    } catch (error) {
+      console.error("Error saving product:", error);
+      setToast({ visible: true, message: "Failed to save product.", type: "error" });
     }
     setDrawerOpen(false);
     setEditProduct(null);
@@ -167,14 +121,16 @@ const ProductsTable = () => {
     setDeleteProduct(product);
   };
 
-  const handleDeleteConfirm = (productId) => {
-    setProducts((prev) => prev.filter((p) => p.id !== productId));
+  const handleDeleteConfirm = async (productId) => {
+    try {
+      await deleteProduct(productId);
+      setToast({ visible: true, message: "Product deleted.", type: "success" });
+      fetchProducts();
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      setToast({ visible: true, message: "Failed to delete product.", type: "error" });
+    }
     setDeleteProduct(null);
-    setToast({
-      visible: true,
-      message: "Product deleted.",
-      type: "success",
-    });
   };
 
   const clearFilters = () => {
@@ -315,7 +271,13 @@ const ProductsTable = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filteredProducts.length === 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-16 text-center">
+                    <p className="text-gray-400 font-semibold text-sm animate-pulse">Loading products...</p>
+                  </td>
+                </tr>
+              ) : filteredProducts.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-16 text-center">
                     <p className="text-gray-400 font-semibold text-sm">No products found.</p>
@@ -324,29 +286,32 @@ const ProductsTable = () => {
                 </tr>
               ) : (
                 filteredProducts.map((product) => {
-                  const statusBadge = getStatusBadge(product.status);
+                  const statusVal = product.status || product.availability || "In Stock";
+                  const statusBadge = getStatusBadge(statusVal);
                   return (
                     <tr key={product.id} className="hover:bg-[#f9fafb] transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-4">
                           <img
-                            src={product.image}
+                            src={product.image || product.image_url || "https://images.unsplash.com/photo-1540574163026-643ea20ade25?auto=format&fit=crop&q=80&w=150"}
                             alt={product.name}
                             className="w-12 h-12 rounded-lg object-cover border border-gray-100"
                           />
                           <div>
                             <span className="block text-sm font-bold text-[#2B1A12]">{product.name}</span>
-                            <span className="block text-xs font-medium text-gray-400 mt-0.5">{product.id}</span>
+                            <span className="block text-xs font-medium text-gray-400 mt-0.5" title={product.id}>{product.id.slice(0, 8)}...</span>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm font-medium text-gray-500">{product.category}</td>
-                      <td className="px-6 py-4 text-sm font-bold text-[#2B1A12]">{product.price}</td>
-                      <td className="px-6 py-4 text-sm font-bold text-gray-700">{product.stock}</td>
+                      <td className="px-6 py-4 text-sm font-bold text-[#2B1A12]">
+                        {typeof product.price === 'number' ? `₦${product.price.toLocaleString()}` : product.price}
+                      </td>
+                      <td className="px-6 py-4 text-sm font-bold text-gray-700">{product.stock || "-"}</td>
                       <td className="px-6 py-4">
                         <span className={`px-3 py-1 rounded-full text-xs font-bold flex items-center w-max gap-1.5 ${statusBadge.bg} ${statusBadge.text}`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.dot}`}></span>
-                          {product.status}
+                          {statusVal}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">

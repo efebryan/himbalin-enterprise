@@ -1,87 +1,17 @@
 import React, { useState, useRef, useEffect } from "react";
-import { FiEye, FiFilter, FiChevronDown, FiChevronUp, FiX, FiDownload } from "react-icons/fi";
+import { FiEye, FiFilter, FiChevronDown, FiChevronUp, FiX, FiDownload, FiRefreshCw } from "react-icons/fi";
 import ViewOrderModal from "./ViewOrderModal";
 import Toast from "../../admin/products/Toast";
+import { getOrders, updateOrderStatus } from "../../../lib/api";
+import { formatPrice } from "../../../lib/formatCurrency";
 
-const ORDER_STATUSES = ["All Status", "Processing", "Shipped", "Delivered", "Cancelled"];
+const ORDER_STATUSES = ["All Status", "Pending", "Processing", "Shipped", "Delivered", "Cancelled"];
 const PAYMENT_STATUSES = ["All Payments", "Paid", "Pending", "Failed"];
 const DATE_RANGES = ["All Time", "Today", "Last 7 Days", "Last 30 Days", "This Month"];
 
-const INITIAL_ORDERS = [
-  {
-    id: "#LX-9082",
-    initials: "AO",
-    customer: "Amaka Okonkwo",
-    date: "Apr 10, 2025",
-    price: "₦1,450,000",
-    items: "3 items",
-    paymentStatus: "Paid",
-    orderStatus: "Processing",
-  },
-  {
-    id: "#LX-9081",
-    initials: "EN",
-    customer: "Emeka Nwosu",
-    date: "Apr 11, 2025",
-    price: "₦380,000",
-    items: "1 item",
-    paymentStatus: "Paid",
-    orderStatus: "Shipped",
-  },
-  {
-    id: "#LX-9080",
-    initials: "FB",
-    customer: "Fatima Bello",
-    date: "Apr 11, 2025",
-    price: "₦195,000",
-    items: "2 items",
-    paymentStatus: "Pending",
-    orderStatus: "Processing",
-  },
-  {
-    id: "#LX-9079",
-    initials: "OA",
-    customer: "Olumide Adeyinka",
-    date: "Apr 12, 2025",
-    price: "₦560,000",
-    items: "4 items",
-    paymentStatus: "Paid",
-    orderStatus: "Delivered",
-  },
-  {
-    id: "#LX-9078",
-    initials: "CA",
-    customer: "Chidinma Eze",
-    date: "Apr 12, 2025",
-    price: "₦2,100,000",
-    items: "5 items",
-    paymentStatus: "Failed",
-    orderStatus: "Cancelled",
-  },
-  {
-    id: "#LX-9077",
-    initials: "TA",
-    customer: "Tunde Afolabi",
-    date: "Apr 13, 2025",
-    price: "₦720,000",
-    items: "2 items",
-    paymentStatus: "Paid",
-    orderStatus: "Processing",
-  },
-  {
-    id: "#LX-9076",
-    initials: "NG",
-    customer: "Ngozi Ibe",
-    date: "Apr 13, 2025",
-    price: "₦95,000",
-    items: "1 item",
-    paymentStatus: "Paid",
-    orderStatus: "Delivered",
-  },
-];
-
 const OrdersTable = () => {
-  const [orders, setOrders] = useState(INITIAL_ORDERS);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [viewOrder, setViewOrder] = useState(null);
   const [toast, setToast] = useState({ visible: false, message: "", type: "success" });
 
@@ -96,6 +26,24 @@ const OrdersTable = () => {
   const statusRef = useRef(null);
   const dateRef = useRef(null);
   const paymentRef = useRef(null);
+
+  /** Fetch orders from Supabase */
+  const fetchOrders = async () => {
+    setLoading(true);
+    try {
+      const data = await getOrders();
+      setOrders(data || []);
+    } catch (err) {
+      console.error("Failed to load orders:", err);
+      setToast({ visible: true, message: "Failed to load orders.", type: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -114,13 +62,57 @@ const OrdersTable = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  /** Map DB status to payment status for display */
+  const getPaymentStatusFromOrder = (order) => {
+    if (order.status === "Paid" || order.status === "Delivered" || order.status === "Shipped" || order.status === "Processing") return "Paid";
+    if (order.status === "Failed") return "Failed";
+    return "Pending";
+  };
+
+  /** Map DB status to order status for display */
+  const getOrderStatusFromOrder = (order) => {
+    // The DB status field may be: Pending, Paid, Processing, Shipped, Delivered, Cancelled
+    if (order.status === "Paid") return "Processing"; // Just paid = processing
+    return order.status;
+  };
+
+  /** Format a date string */
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "—";
+    return new Date(dateStr).toLocaleDateString("en-NG", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  /** Get initials from name */
+  const getInitials = (name) => {
+    if (!name) return "??";
+    return name
+      .split(" ")
+      .map((w) => w[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  /** Count total items */
+  const getItemCount = (items) => {
+    if (!items || !Array.isArray(items)) return "—";
+    const count = items.reduce((sum, i) => sum + (i.quantity || 1), 0);
+    return `${count} item${count !== 1 ? "s" : ""}`;
+  };
+
   // Filter logic
   const filteredOrders = orders.filter((order) => {
+    const paymentStatus = getPaymentStatusFromOrder(order);
+    const orderStatus = getOrderStatusFromOrder(order);
+
     const matchesStatus =
-      selectedStatus === "All Status" || order.orderStatus === selectedStatus;
+      selectedStatus === "All Status" || orderStatus === selectedStatus;
     const matchesPayment =
-      selectedPayment === "All Payments" || order.paymentStatus === selectedPayment;
-    // Date range filtering is illustrative (mock data doesn't have real dates)
+      selectedPayment === "All Payments" || paymentStatus === selectedPayment;
     return matchesStatus && matchesPayment;
   });
 
@@ -153,34 +145,39 @@ const OrdersTable = () => {
         return { bg: "bg-emerald-50", text: "text-emerald-600", dot: "bg-emerald-500" };
       case "Cancelled":
         return { bg: "bg-red-50", text: "text-red-600", dot: "bg-red-500" };
+      case "Pending":
+        return { bg: "bg-amber-50", text: "text-amber-600", dot: "bg-amber-500" };
       default:
         return { bg: "bg-gray-100", text: "text-gray-600", dot: "bg-gray-400" };
     }
   };
 
   // Actions
-  const handleUpdateOrderStatus = (orderId, newStatus) => {
-    setOrders((prev) =>
-      prev.map((o) => (o.id === orderId ? { ...o, orderStatus: newStatus } : o))
-    );
-    setViewOrder(null);
-    setToast({
-      visible: true,
-      message: `Order ${orderId} marked as ${newStatus}.`,
-      type: "success",
-    });
+  const handleUpdateOrderStatus = async (orderId, newStatus) => {
+    try {
+      await updateOrderStatus(orderId, newStatus);
+      // Refresh the list
+      await fetchOrders();
+      setViewOrder(null);
+      setToast({
+        visible: true,
+        message: `Order marked as ${newStatus}.`,
+        type: "success",
+      });
+    } catch (err) {
+      console.error("Failed to update order:", err);
+      setToast({
+        visible: true,
+        message: "Failed to update order status.",
+        type: "error",
+      });
+    }
   };
 
   const clearFilters = () => {
     setSelectedStatus("All Status");
     setSelectedPayment("All Payments");
     setSelectedDateRange("All Time");
-  };
-
-  const closeAllDropdowns = () => {
-    setStatusDropdownOpen(false);
-    setDateDropdownOpen(false);
-    setPaymentDropdownOpen(false);
   };
 
   return (
@@ -327,6 +324,14 @@ const OrdersTable = () => {
               </button>
             )}
 
+            {/* Refresh */}
+            <button
+              onClick={fetchOrders}
+              className="flex items-center gap-1 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 border border-gray-200 rounded-lg text-xs md:text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              <FiRefreshCw className={loading ? "animate-spin" : ""} />
+            </button>
+
             {/* Export */}
             <button className="bg-[#F4A623] hover:bg-[#e09520] text-[#2B1A12] px-4 md:px-5 py-1.5 md:py-2 rounded-lg font-bold shadow-sm transition-all text-xs md:text-sm flex items-center gap-1 md:gap-2 flex-1 md:flex-none justify-center">
               <FiDownload className="text-sm" /> Export
@@ -349,7 +354,14 @@ const OrdersTable = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filteredOrders.length === 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-16 text-center">
+                    <FiRefreshCw className="animate-spin mx-auto text-2xl text-gray-300 mb-3" />
+                    <p className="text-gray-400 text-sm font-medium">Loading orders...</p>
+                  </td>
+                </tr>
+              ) : filteredOrders.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-16 text-center">
                     <p className="text-gray-400 font-semibold text-sm">No orders found.</p>
@@ -358,34 +370,48 @@ const OrdersTable = () => {
                 </tr>
               ) : (
                 filteredOrders.map((order) => {
-                  const orderBadge = getOrderStatusBadge(order.orderStatus);
+                  const paymentStatus = getPaymentStatusFromOrder(order);
+                  const orderStatus = getOrderStatusFromOrder(order);
+                  const orderBadge = getOrderStatusBadge(orderStatus);
                   return (
                     <tr key={order.id} className="hover:bg-[#f9fafb] transition-colors">
-                      <td className="px-6 py-4 text-sm font-bold text-[#F4A623]">{order.id}</td>
+                      <td className="px-6 py-4 text-sm font-bold text-[#F4A623]">#{order.id.slice(0, 8)}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-[#F4A623]/10 flex items-center justify-center text-xs font-bold text-[#2B1A12] border border-[#F4A623]/20">
-                            {order.initials}
+                            {getInitials(order.customer_name)}
                           </div>
-                          <span className="text-sm font-bold text-[#2B1A12]">{order.customer}</span>
+                          <span className="text-sm font-bold text-[#2B1A12]">{order.customer_name}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-500">{order.date}</td>
-                      <td className="px-6 py-4 text-sm font-bold text-[#2B1A12]">{order.price}</td>
+                      <td className="px-6 py-4 text-sm font-medium text-gray-500">{formatDate(order.created_at)}</td>
+                      <td className="px-6 py-4 text-sm font-bold text-[#2B1A12]">{formatPrice(order.total)}</td>
                       <td className="px-6 py-4">
-                        <span className={`px-2.5 py-1 rounded text-xs font-bold ${getPaymentBadge(order.paymentStatus)}`}>
-                          {order.paymentStatus}
+                        <span className={`px-2.5 py-1 rounded text-xs font-bold ${getPaymentBadge(paymentStatus)}`}>
+                          {paymentStatus}
                         </span>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`px-3 py-1 rounded-full text-xs font-bold flex items-center w-max gap-1.5 ${orderBadge.bg} ${orderBadge.text}`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${orderBadge.dot}`}></span>
-                          {order.orderStatus}
+                          {orderStatus}
                         </span>
                       </td>
                       <td className="px-6 py-4">
                         <button
-                          onClick={() => setViewOrder(order)}
+                          onClick={() =>
+                            setViewOrder({
+                              ...order,
+                              // Map fields for the ViewOrderModal's expected shape
+                              initials: getInitials(order.customer_name),
+                              customer: order.customer_name,
+                              date: formatDate(order.created_at),
+                              price: formatPrice(order.total),
+                              paymentStatus: paymentStatus,
+                              orderStatus: orderStatus,
+                              items: getItemCount(order.items),
+                            })
+                          }
                           title="View order details"
                           className="text-gray-400 hover:text-[#2B1A12] transition-colors p-1.5 rounded-md hover:bg-gray-100"
                         >

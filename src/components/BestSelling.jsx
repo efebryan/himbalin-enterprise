@@ -1,8 +1,26 @@
-import { products } from "../data/products";
+import { useState, useEffect } from "react";
+import { getBestSellingProducts } from "../lib/api";
 import ProductCard from "./ProductCard";
 import { Link } from "react-router-dom";
 
 const BestSelling = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getBestSellingProducts(4);
+        setProducts(data);
+      } catch (err) {
+        console.error("Failed to load best-selling products:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
   return (
     <section className="py-24 px-8 bg-white">
       <div className="container mx-auto">
@@ -24,11 +42,17 @@ const BestSelling = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex justify-center py-16">
+            <div className="animate-spin rounded-full h-10 w-10 border-4 border-himbalin-gold border-t-transparent"></div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

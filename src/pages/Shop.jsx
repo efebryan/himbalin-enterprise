@@ -7,172 +7,8 @@ import Footer from "../components/Footer";
 import { FiGrid, FiList, FiChevronDown, FiX } from "react-icons/fi";
 import PageLoader from "../components/PageLoader";
 import { AnimatePresence, motion } from "framer-motion";
-
-// ─── All shop products with category/material/availability tags ───────────────
-const ALL_PRODUCTS = [
-  {
-    id: 1,
-    name: "Artisan Ceramic Vase",
-    description: "Hand-thrown neutral tones",
-    price: 85.0,
-    rating: 4.9,
-    reviews: 128,
-    category: "Home Decor",
-    material: "Ceramic",
-    availability: "In Stock",
-    image:
-      "https://images.unsplash.com/photo-1578500494198-246f612d3b3d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    badge: "NEW ARRIVAL",
-  },
-  {
-    id: 2,
-    name: "Linear Brass Lamp",
-    description: "Brushed finish, LED dimming",
-    price: 120.0,
-    rating: 4.8,
-    reviews: 94,
-    category: "Home Decor",
-    material: "Brass",
-    availability: "In Stock",
-    image:
-      "https://images.unsplash.com/photo-1534073828943-f801091bb18c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: 3,
-    name: "Organic Linen Set",
-    description: "Breathable, eco-friendly",
-    price: 195.0,
-    oldPrice: 245.0,
-    rating: 4.7,
-    reviews: 210,
-    category: "Home Decor",
-    material: "Linen",
-    availability: "In Stock",
-    image:
-      "https://images.unsplash.com/photo-1629079448225-23fa54e5c54d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    badge: "SALE -20%",
-  },
-  {
-    id: 4,
-    name: "Oak Horizon Table",
-    description: "Solid white oak construction",
-    price: 450.0,
-    rating: 5.0,
-    reviews: 56,
-    category: "Furniture",
-    material: "Oak",
-    availability: "In Stock",
-    image:
-      "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: 5,
-    name: "Nova Lounge Chair",
-    description: "Premium top-grain leather",
-    price: 890.0,
-    rating: 4.9,
-    reviews: 342,
-    category: "Furniture",
-    material: "Linen",
-    availability: "Express Delivery",
-    image:
-      "https://images.unsplash.com/photo-1592078615290-033ee584e267?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: 6,
-    name: "Abstract Flow Canvas",
-    description: "Original limited edition",
-    price: 150.0,
-    rating: 4.6,
-    reviews: 45,
-    category: "Home Decor",
-    material: "Linen",
-    availability: "In Stock",
-    image:
-      "https://images.unsplash.com/photo-1541963463532-d68292c34b19?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: 7,
-    name: "Rattan Pendant Light",
-    description: "Natural textures for warmth",
-    price: 115.0,
-    rating: 4.8,
-    reviews: 72,
-    category: "Home Decor",
-    material: "Oak",
-    availability: "In Stock",
-    image:
-      "https://images.unsplash.com/photo-1540932239986-30128078f3c5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: 8,
-    name: "Executive Glass Desk",
-    description: "Tempered glass, chrome accents",
-    price: 1250.0,
-    rating: 5.0,
-    reviews: 15,
-    category: "Furniture",
-    material: "Brass",
-    availability: "Express Delivery",
-    image:
-      "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    badge: "LIMITED EDITION",
-  },
-  {
-    id: 9,
-    name: "Persian Vintage Rug",
-    description: "Hand-knotted wool, intricate patterns",
-    price: 1200.0,
-    rating: 4.9,
-    reviews: 84,
-    category: "Floor & Outdoor",
-    material: "Linen",
-    availability: "In Stock",
-    image:
-      "https://images.unsplash.com/photo-1590124231662-7901da37ebda?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    badge: "NEW ARRIVAL",
-  },
-  {
-    id: 10,
-    name: "Premium Landscape Turf",
-    description: "High density, realistic soft touch",
-    price: 12.0,
-    rating: 4.9,
-    reviews: 312,
-    category: "Floor & Outdoor",
-    material: "Linen",
-    availability: "Express Delivery",
-    image:
-      "https://images.unsplash.com/photo-1596788062829-41d3ceec2f9d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: 11,
-    name: "Ergonomic Mesh Chair",
-    description: "Lumbar support, adjustable arms",
-    price: 350.0,
-    rating: 4.8,
-    reviews: 215,
-    category: "Furniture",
-    material: "Brass",
-    availability: "In Stock",
-    image:
-      "https://images.unsplash.com/photo-1505843490538-5133c6c7d0e1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    badge: "POPULAR",
-  },
-  {
-    id: 12,
-    name: "Minimalist Shag Rug",
-    description: "Ultra-soft deep pile comfort",
-    price: 340.0,
-    rating: 5.0,
-    reviews: 56,
-    category: "Floor & Outdoor",
-    material: "Linen",
-    availability: "In Stock",
-    image:
-      "https://images.unsplash.com/photo-1582582621959-48d27397dc69?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-  },
-];
+import { getProducts } from "../lib/api";
+import { formatPrice } from "../lib/formatCurrency";
 
 const SORT_OPTIONS = [
   { label: "Popularity", value: "popularity" },
@@ -182,11 +18,12 @@ const SORT_OPTIONS = [
   { label: "Most Reviewed", value: "reviews" },
 ];
 
-const PRICE_MAX = 1500;
+const PRICE_MAX = 3000000;
 
 // ─── Component ────────────────────────────────────────────────────────────────
 const Shop = () => {
   const [loading, setLoading] = useState(true);
+  const [allProducts, setAllProducts] = useState([]);
 
   // Filter state
   const [activeCategory, setActiveCategory] = useState("All Products");
@@ -198,13 +35,22 @@ const Shop = () => {
   const [showSortMenu, setShowSortMenu] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1500);
-    return () => clearTimeout(timer);
+    const fetchData = async () => {
+      try {
+        const data = await getProducts();
+        setAllProducts(data);
+      } catch (err) {
+        console.error("Failed to load products:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
   // ── Derived: filtered + sorted list ──────────────────────────────────────
   const filtered = useMemo(() => {
-    let list = [...ALL_PRODUCTS];
+    let list = [...allProducts];
 
     // Category
     if (activeCategory !== "All Products") {
@@ -245,7 +91,7 @@ const Shop = () => {
     }
 
     return list;
-  }, [activeCategory, priceRange, activeAvailability, activeMaterials, sortBy]);
+  }, [allProducts, activeCategory, priceRange, activeAvailability, activeMaterials, sortBy]);
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const toggleMaterial = (mat) =>
@@ -432,7 +278,7 @@ const Shop = () => {
                     ))}
                     {(priceRange[0] > 0 || priceRange[1] < PRICE_MAX) && (
                       <Chip
-                        label={`$${priceRange[0]} – $${priceRange[1]}`}
+                        label={`${formatPrice(priceRange[0])} – ${formatPrice(priceRange[1])}`}
                         onRemove={() => setPriceRange([0, PRICE_MAX])}
                       />
                     )}
@@ -591,11 +437,11 @@ const ProductListRow = ({ product }) => {
       <div className="flex flex-col items-end gap-3 shrink-0">
         <div>
           <p className="font-serif text-xl font-black text-himbalin-dark">
-            ${product.price.toFixed(2)}
+            {formatPrice(product.price)}
           </p>
           {product.oldPrice && (
             <p className="font-sans text-xs text-gray-300 line-through text-right">
-              ${product.oldPrice.toFixed(2)}
+              {formatPrice(product.oldPrice)}
             </p>
           )}
         </div>

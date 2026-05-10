@@ -6,6 +6,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import PageLoader from "../components/PageLoader";
 import { useCart } from "../context/CartContext";
+import { formatPrice } from "../lib/formatCurrency";
 
 const Cart = () => {
   const [loading, setLoading] = useState(true);
@@ -72,7 +73,7 @@ const Cart = () => {
                       <p className={`text-xs font-semibold mb-2 ${item.status === "In Stock" ? "text-green-600" : "text-himbalin-gold"}`}>
                         {item.status}
                       </p>
-                      <p className="text-gray-500 font-medium">${item.price.toFixed(2)}</p>
+                      <p className="text-gray-500 font-medium">{formatPrice(item.price)}</p>
                     </div>
 
                     <div className="flex items-center gap-4">
@@ -123,7 +124,7 @@ const Cart = () => {
                 <div className="space-y-4 mb-10">
                   <div className="flex justify-between text-gray-500 font-medium">
                     <span>Subtotal</span>
-                    <span className="text-[#1a1a1a] font-bold">${subtotal.toFixed(2)}</span>
+                    <span className="text-[#1a1a1a] font-bold">{formatPrice(subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-gray-500 font-medium">
                     <span>Shipping</span>
@@ -131,26 +132,24 @@ const Cart = () => {
                   </div>
                   <div className="flex justify-between text-gray-500 font-medium">
                     <span>Estimated Tax</span>
-                    <span className="text-[#1a1a1a] font-bold">${tax.toFixed(2)}</span>
+                    <span className="text-[#1a1a1a] font-bold">{formatPrice(tax)}</span>
                   </div>
                 </div>
 
                 <div className="flex justify-between items-end border-t border-gray-50 pt-8 mb-8">
                   <span className="text-lg font-bold text-[#1a1a1a]">Total</span>
                   <span className="text-4xl font-serif font-900 text-himbalin-gold">
-                    ${total.toFixed(2)}
+                    {formatPrice(total)}
                   </span>
                 </div>
 
                 <div className="space-y-4">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    disabled={cartItems.length === 0}
-                    className={`w-full bg-himbalin-gold text-white rounded-full py-5 font-bold flex items-center justify-center gap-3 shadow-[0_8px_25px_rgba(245,166,35,0.25)] hover:bg-[#e0951a] transition-all ${cartItems.length === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
+                  <Link
+                    to={cartItems.length === 0 ? "#" : "/checkout"}
+                    className={`w-full bg-himbalin-gold text-white rounded-full py-5 font-bold flex items-center justify-center gap-3 shadow-[0_8px_25px_rgba(245,166,35,0.25)] hover:bg-[#e0951a] transition-all ${cartItems.length === 0 ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}`}
                   >
                     <FiLock /> Proceed to Checkout
-                  </motion.button>
+                  </Link>
 
                   <Link to="/shop" className="w-full bg-white border border-gray-100 text-gray-400 rounded-full py-5 font-bold flex items-center justify-center hover:bg-gray-50 transition-all">
                     Continue Shopping

@@ -30,9 +30,8 @@ const AddProductDrawer = ({ isOpen, onClose, onSave, editProduct }) => {
   // Pre-fill form when editing
   useEffect(() => {
     if (editProduct && isOpen) {
-      const rawPrice = editProduct.price
-        ? editProduct.price.replace(/[₦,]/g, "").split("/")[0].trim()
-        : "";
+      const priceStr = String(editProduct.price || "");
+      const rawPrice = priceStr.replace(/[₦,]/g, "").split("/")[0].trim();
       setForm({
         name: editProduct.name || "",
         category: editProduct.category || "",
@@ -166,6 +165,7 @@ const AddProductDrawer = ({ isOpen, onClose, onSave, editProduct }) => {
         previewImages.length > 0
           ? previewImages[0].url
           : "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=150",
+      imageFile: previewImages.length > 0 ? previewImages[0].file : null,
     };
 
     onSave(productData, isDraft, isEditMode);

@@ -1,14 +1,51 @@
 import { FiMail, FiPhone, FiMapPin, FiSettings, FiCheck } from "react-icons/fi";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { sendContactMessage, getSiteSettings } from "../lib/api";
 
 const ContactFormSection = () => {
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [settings, setSettings] = useState(null);
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await getSiteSettings();
+        setSettings(data);
+      } catch (err) {
+        console.error("Failed to load contact settings:", err);
+      }
+    };
+    load();
+  }, []);
+
+  // Controlled form state
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [subject, setSubject] = useState("Bespoke Furniture Inquiry");
+  const [message, setMessage] = useState("");
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
+    setError("");
+    setSubmitting(true);
+    try {
+      await sendContactMessage({ name, email, subject, message });
+      setSubmitted(true);
+      setName("");
+      setEmail("");
+      setSubject("Bespoke Furniture Inquiry");
+      setMessage("");
+    } catch (err) {
+      console.error("Failed to send message:", err);
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
+
   return (
     <section className="py-24 px-8 bg-white">
       <div className="container mx-auto max-w-7xl">
@@ -54,6 +91,8 @@ const ContactFormSection = () => {
                           type="text"
                           placeholder="Your full name"
                           required
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
                           className="w-full bg-himbalin-beige/30 border-none rounded-xl py-4 px-6 text-himbalin-dark focus:ring-2 focus:ring-himbalin-gold/50 transition-all outline-none"
                         />
                       </div>
@@ -65,6 +104,8 @@ const ContactFormSection = () => {
                           type="email"
                           placeholder="email@example.com"
                           required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
                           className="w-full bg-himbalin-beige/30 border-none rounded-xl py-4 px-6 text-himbalin-dark focus:ring-2 focus:ring-himbalin-gold/50 transition-all outline-none"
                         />
                       </div>
@@ -74,7 +115,11 @@ const ContactFormSection = () => {
                       <label className="font-sans text-xs font-bold text-himbalin-dark uppercase tracking-wider">
                         Subject
                       </label>
-                      <select className="w-full bg-himbalin-beige/30 border-none rounded-xl py-4 px-6 text-himbalin-dark focus:ring-2 focus:ring-himbalin-gold/50 transition-all outline-none appearance-none">
+                      <select
+                        value={subject}
+                        onChange={(e) => setSubject(e.target.value)}
+                        className="w-full bg-himbalin-beige/30 border-none rounded-xl py-4 px-6 text-himbalin-dark focus:ring-2 focus:ring-himbalin-gold/50 transition-all outline-none appearance-none"
+                      >
                         <option>Bespoke Furniture Inquiry</option>
                         <option>Interior Styling Consultation</option>
                         <option>Lagos Showroom Visit</option>
@@ -91,15 +136,22 @@ const ContactFormSection = () => {
                         placeholder="How can we help you today?"
                         rows="5"
                         required
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
                         className="w-full bg-himbalin-beige/30 border-none rounded-xl py-4 px-6 text-himbalin-dark focus:ring-2 focus:ring-himbalin-gold/50 transition-all outline-none resize-none"
                       ></textarea>
                     </div>
 
+                    {error && (
+                      <p className="text-red-500 text-sm font-medium">{error}</p>
+                    )}
+
                     <button
                       type="submit"
-                      className="bg-himbalin-gold text-himbalin-dark px-10 py-4 rounded-xl font-bold text-sm hover:bg-yellow-500 transition-colors shadow-soft hover:shadow-hover mt-4 uppercase tracking-widest"
+                      disabled={submitting}
+                      className={`bg-himbalin-gold text-himbalin-dark px-10 py-4 rounded-xl font-bold text-sm hover:bg-yellow-500 transition-colors shadow-soft hover:shadow-hover mt-4 uppercase tracking-widest ${submitting ? 'opacity-70 cursor-not-allowed' : ''}`}
                     >
-                      Submit Inquiry
+                      {submitting ? "Sending..." : "Submit Inquiry"}
                     </button>
                   </form>
                 </motion.div>
@@ -123,10 +175,10 @@ const ContactFormSection = () => {
                     Bespoke Consulting
                   </h4>
                   <p className="font-sans text-sm text-himbalin-dark/60">
-                    bespoke@himbalin.com
+                    {settings?.store_email || "info@himbalin.com"}
                   </p>
                   <p className="font-sans text-sm text-himbalin-dark/60 mt-1">
-                    +234 (0) 800 BESPOKE
+                    {settings?.store_phone || "+234 700 000 0001"}
                   </p>
                 </div>
               </div>
@@ -140,10 +192,10 @@ const ContactFormSection = () => {
                     General Inquiries
                   </h4>
                   <p className="font-sans text-sm text-himbalin-dark/60">
-                    concierge@himbalin.com
+                    {settings?.store_email || "info@himbalin.com"}
                   </p>
                   <p className="font-sans text-sm text-himbalin-dark/60 mt-1">
-                    +90 (212) 555 0199
+                    {settings?.store_phone || "+234 700 000 0001"}
                   </p>
                 </div>
               </div>

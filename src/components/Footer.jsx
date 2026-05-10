@@ -1,7 +1,27 @@
+import { useState, useEffect } from "react";
 import { FiInstagram, FiFacebook, FiTwitter } from "react-icons/fi";
 import { Link } from "react-router-dom";
+import { getSiteSettings } from "../lib/api";
 
 const Footer = () => {
+  const [settings, setSettings] = useState(null);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await getSiteSettings();
+        setSettings(data);
+      } catch (err) {
+        console.error("Failed to load footer settings:", err);
+      }
+    };
+    load();
+  }, []);
+
+  const storeName = settings?.store_name || "Himbalin Enterprise";
+  const storeEmail = settings?.store_email || "info@himbalin.com";
+  const storeAddress = settings?.store_address || "14 Admiralty Way, Lekki Phase 1, Lagos, Nigeria";
+
   return (
     <footer className="bg-[#1A100B] text-himbalin-beige pt-20 pb-8 px-8 border-t border-himbalin-beige/10">
       <div className="container mx-auto">
@@ -15,7 +35,7 @@ const Footer = () => {
                 </span>
               </div>
               <span className="font-serif text-2xl font-bold tracking-wide">
-                Himbalin
+                {storeName.split(" ")[0] || "Himbalin"}
               </span>
             </div>
             <p className="font-sans text-himbalin-beige/70 text-sm leading-relaxed mb-8">
@@ -141,7 +161,6 @@ const Footer = () => {
               Our Location
             </h4>
             <div className="bg-white/5 p-1 rounded-xl mb-4 border border-white/10 relative h-24 overflow-hidden group">
-              {/* Map background */}
               <div
                 className="absolute inset-0 bg-cover bg-center opacity-60 group-hover:opacity-80 transition-opacity"
                 style={{
@@ -154,21 +173,14 @@ const Footer = () => {
                 </div>
               </div>
             </div>
-            <p className="font-sans text-sm text-himbalin-beige/70 leading-relaxed mb-2">
-              12 Victoria Island Crescent,
-              <br />
-              Lagos, Nigeria
-            </p>
-            <p className="font-sans text-sm text-himbalin-beige/50 leading-relaxed mb-6">
-              Levent Loft, Büyükdere Cd. No:201,
-              <br />
-              İstanbul, Turkey
+            <p className="font-sans text-sm text-himbalin-beige/70 leading-relaxed mb-4">
+              {storeAddress}
             </p>
             <a
-              href="mailto:contact@himbalin.com"
+              href={`mailto:${storeEmail}`}
               className="font-serif text-himbalin-gold hover:text-white transition-colors"
             >
-              contact@himbalin.com
+              {storeEmail}
             </a>
           </div>
         </div>
@@ -176,7 +188,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-himbalin-beige/10 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="font-sans text-xs text-himbalin-beige/50">
-            &copy; {new Date().getFullYear()} Himbalin Enterprises. All rights
+            &copy; {new Date().getFullYear()} {storeName}. All rights
             reserved.
           </p>
           <div className="flex gap-6 font-sans text-xs text-himbalin-beige/70">

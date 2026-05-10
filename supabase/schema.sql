@@ -27,9 +27,13 @@ create table if not exists orders (
   id              uuid primary key default gen_random_uuid(),
   customer_name   text not null,
   customer_email  text not null,
+  phone           text,
+  address         text,
+  city            text,
   status          text default 'Pending',
   total           numeric(10,2) not null,
   items           jsonb,
+  paystack_reference text unique,
   created_at      timestamptz default now()
 );
 

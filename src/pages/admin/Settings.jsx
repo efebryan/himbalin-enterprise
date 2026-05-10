@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FiUser, FiLock, FiMail, FiBell, FiGlobe, FiShield,
   FiSave, FiCamera, FiEye, FiEyeOff, FiCheck
 } from "react-icons/fi";
 import Toast from "../../components/admin/products/Toast";
+import { getSiteSettings, updateSiteSettings } from "../../lib/api";
 
 const TABS = [
   { id: "profile", label: "Profile", icon: FiUser },
@@ -15,15 +16,18 @@ const TABS = [
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const [toast, setToast] = useState({ visible: false, message: "", type: "success" });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [settingsId, setSettingsId] = useState(null);
 
   // ── Profile State ──
   const [profile, setProfile] = useState({
-    firstName: "Alex",
-    lastName: "Rivera",
-    email: "alex.rivera@himbalin.com",
-    phone: "+234 801 234 5678",
-    role: "Admin Lead",
-    bio: "Senior administrator managing Himbalin Enterprise operations, product catalog, and customer relations.",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    role: "",
+    bio: "",
   });
 
   // ── Security State ──
@@ -53,15 +57,96 @@ const Settings = () => {
 
   // ── Store State ──
   const [store, setStore] = useState({
-    storeName: "Himbalin Enterprise",
-    storeEmail: "info@himbalin.com",
-    storePhone: "+234 700 000 0001",
-    storeAddress: "14 Admiralty Way, Lekki Phase 1, Lagos, Nigeria",
+    storeName: "",
+    storeEmail: "",
+    storePhone: "",
+    storeAddress: "",
     currency: "NGN (₦)",
     taxRate: "7.5",
     minOrderAmount: "50000",
     freeShippingThreshold: "500000",
   });
+
+  // ── Load settings from Supabase on mount ──
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const data = await getSiteSettings();
+        if (data) {
+          setSettingsId(data.id);
+          setProfile({
+            firstName: data.admin_first_name || "",
+            lastName: data.admin_last_name || "",
+            email: data.admin_email || "",
+            phone: data.admin_phone || "",
+            role: data.admin_role || "",
+            bio: data.admin_bio || "",
+          });
+          setStore({
+            storeName: data.store_name || "",
+            storeEmail: data.store_email || "",
+            storePhone: data.store_phone || "",
+            storeAddress: data.store_address || "",
+            currency: data.currency || "NGN (₦)",
+            taxRate: String(data.tax_rate || "7.5"),
+            minOrderAmount: String(data.min_order_amount || "50000"),
+            freeShippingThreshold: String(data.free_shipping_threshold || "500000"),
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load settings:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadSettings();
+  }, []);
+
+  // ── Save profile to Supabase ──
+  const saveProfile = async () => {
+    if (!settingsId) return;
+    setSaving(true);
+    try {
+      await updateSiteSettings(settingsId, {
+        admin_first_name: profile.firstName,
+        admin_last_name: profile.lastName,
+        admin_email: profile.email,
+        admin_phone: profile.phone,
+        admin_role: profile.role,
+        admin_bio: profile.bio,
+      });
+      showToast("Profile updated successfully!");
+    } catch (err) {
+      console.error("Failed to save profile:", err);
+      showToast("Failed to save profile.", "draft");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ── Save store settings to Supabase ──
+  const saveStore = async () => {
+    if (!settingsId) return;
+    setSaving(true);
+    try {
+      await updateSiteSettings(settingsId, {
+        store_name: store.storeName,
+        store_email: store.storeEmail,
+        store_phone: store.storePhone,
+        store_address: store.storeAddress,
+        currency: store.currency,
+        tax_rate: parseFloat(store.taxRate) || 7.5,
+        min_order_amount: parseFloat(store.minOrderAmount) || 50000,
+        free_shipping_threshold: parseFloat(store.freeShippingThreshold) || 500000,
+      });
+      showToast("Store settings saved!");
+    } catch (err) {
+      console.error("Failed to save store settings:", err);
+      showToast("Failed to save store settings.", "draft");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const showToast = (message, type = "success") => {
     setToast({ visible: true, message, type });
@@ -85,6 +170,15 @@ const Settings = () => {
       />
     </button>
   );
+
+  // ── Loading State ──
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-10 w-10 border-4 border-[#F4A623] border-t-transparent"></div>
+      </div>
+    );
+  }
 
   // ──────────────────────────────────────────
   // Tab: Profile
@@ -166,10 +260,11 @@ const Settings = () => {
       {/* Save */}
       <div className="flex justify-end">
         <button
-          onClick={() => showToast("Profile updated successfully!")}
-          className="flex items-center gap-2 px-6 py-2.5 bg-[#F4A623] hover:bg-[#e09520] text-[#2B1A12] rounded-lg text-sm font-bold shadow-md shadow-[#F4A623]/25 transition-all"
+          onClick={saveProfile}
+          disabled={saving}
+          className={`flex items-center gap-2 px-6 py-2.5 bg-[#F4A623] hover:bg-[#e09520] text-[#2B1A12] rounded-lg text-sm font-bold shadow-md shadow-[#F4A623]/25 transition-all ${saving ? 'opacity-70 cursor-not-allowed' : ''}`}
         >
-          <FiSave className="text-sm" /> Save Changes
+          <FiSave className="text-sm" /> {saving ? "Saving..." : "Save Changes"}
         </button>
       </div>
     </div>
@@ -235,7 +330,6 @@ const Settings = () => {
         </div>
       </div>
 
-      {/* Divider */}
       <hr className="border-gray-100" />
 
       {/* Two-Factor Auth */}
@@ -259,7 +353,6 @@ const Settings = () => {
         </div>
       </div>
 
-      {/* Divider */}
       <hr className="border-gray-100" />
 
       {/* Active Sessions */}
@@ -431,7 +524,6 @@ const Settings = () => {
         </div>
       </div>
 
-      {/* Divider */}
       <hr className="border-gray-100" />
 
       {/* Financial Settings */}
@@ -473,10 +565,11 @@ const Settings = () => {
       {/* Save */}
       <div className="flex justify-end">
         <button
-          onClick={() => showToast("Store settings saved!")}
-          className="flex items-center gap-2 px-6 py-2.5 bg-[#F4A623] hover:bg-[#e09520] text-[#2B1A12] rounded-lg text-sm font-bold shadow-md shadow-[#F4A623]/25 transition-all"
+          onClick={saveStore}
+          disabled={saving}
+          className={`flex items-center gap-2 px-6 py-2.5 bg-[#F4A623] hover:bg-[#e09520] text-[#2B1A12] rounded-lg text-sm font-bold shadow-md shadow-[#F4A623]/25 transition-all ${saving ? 'opacity-70 cursor-not-allowed' : ''}`}
         >
-          <FiSave className="text-sm" /> Save Settings
+          <FiSave className="text-sm" /> {saving ? "Saving..." : "Save Settings"}
         </button>
       </div>
     </div>

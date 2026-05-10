@@ -6,9 +6,10 @@ import {
   MdInventory,
   MdPeople,
   MdAnalytics,
+  MdSettings,
+  MdRateReview,
 } from "react-icons/md";
 import { RiLayoutGridFill, RiCloseLine } from "react-icons/ri";
-import { MdSettings } from "react-icons/md";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const location = useLocation();
@@ -18,6 +19,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     { name: "Orders", path: "/admin/orders", icon: <MdShoppingCart className="text-xl" /> },
     { name: "Products", path: "/admin/products", icon: <MdInventory className="text-xl" /> },
     { name: "Customers", path: "/admin/customers", icon: <MdPeople className="text-xl" /> },
+    { name: "Reviews", path: "/admin/reviews", icon: <MdRateReview className="text-xl" /> },
     { name: "Analytics", path: "/admin/analytics", icon: <MdAnalytics className="text-xl" /> },
     { name: "Settings", path: "/admin/settings", icon: <MdSettings className="text-xl" /> },
   ];

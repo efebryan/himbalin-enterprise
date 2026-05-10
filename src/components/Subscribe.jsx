@@ -1,15 +1,28 @@
 import { useState } from "react";
 import { FiMail, FiCheck } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
+import { subscribeEmail } from "../lib/api";
 
 const Subscribe = () => {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubscribed(true);
-    setEmail("");
+    setError("");
+    setSubmitting(true);
+    try {
+      await subscribeEmail(email);
+      setSubscribed(true);
+      setEmail("");
+    } catch (err) {
+      console.error("Subscription failed:", err);
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -66,13 +79,18 @@ const Subscribe = () => {
               />
               <button
                 type="submit"
-                className="bg-himbalin-dark text-himbalin-gold px-10 py-4 rounded-full font-bold font-sans tracking-wide hover:bg-black transition-colors shadow-soft"
+                disabled={submitting}
+                className={`bg-himbalin-dark text-himbalin-gold px-10 py-4 rounded-full font-bold font-sans tracking-wide hover:bg-black transition-colors shadow-soft ${submitting ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
-                Subscribe Now
+                {submitting ? "Subscribing..." : "Subscribe Now"}
               </button>
             </motion.form>
           )}
         </AnimatePresence>
+
+        {error && (
+          <p className="mt-4 text-red-700 font-medium text-sm">{error}</p>
+        )}
       </div>
     </section>
   );

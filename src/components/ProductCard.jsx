@@ -2,6 +2,7 @@ import { useState } from "react";
 import { FiHeart, FiShoppingCart, FiStar, FiCheck } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "../context/CartContext";
+import { formatPrice } from "../lib/formatCurrency";
 
 const ProductCard = (props) => {
   const {
@@ -123,11 +124,11 @@ const ProductCard = (props) => {
           <div className="flex items-center justify-between">
             <div className="flex items-baseline gap-3">
               <span className="font-serif text-xl font-black text-himbalin-dark">
-                ${formattedPrice}
+                {formatPrice(price)}
               </span>
-              {formattedOldPrice && (
+              {oldPrice && (
                 <span className="font-sans text-sm text-gray-300 line-through">
-                  ${formattedOldPrice}
+                  {formatPrice(oldPrice)}
                 </span>
               )}
             </div>

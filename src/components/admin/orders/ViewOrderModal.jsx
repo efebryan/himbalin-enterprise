@@ -36,6 +36,11 @@ const ViewOrderModal = ({ order, isOpen, onClose, onUpdateStatus }) => {
   // Determine the possible next status actions
   const getAvailableActions = (status) => {
     switch (status) {
+      case "Pending":
+        return [
+          { label: "Process Order", value: "Processing", icon: FiPackage, color: "bg-[#F4A623] hover:bg-[#e09520] text-[#2B1A12]" },
+          { label: "Cancel Order", value: "Cancelled", icon: FiXCircle, color: "bg-red-500 hover:bg-red-600 text-white" },
+        ];
       case "Processing":
         return [
           { label: "Mark as Shipped", value: "Shipped", icon: FiTruck, color: "bg-blue-500 hover:bg-blue-600 text-white" },

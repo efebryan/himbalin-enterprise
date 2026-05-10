@@ -14,6 +14,8 @@ import ArtificialGrass from "./pages/ArtificialGrass";
 import Consulting from "./pages/Consulting";
 import AdminLogin from "./pages/AdminLogin";
 import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
+import PaymentSuccess from "./pages/PaymentSuccess";
 import AdminLayout from "./layouts/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import Orders from "./pages/admin/Orders";
@@ -21,6 +23,8 @@ import Products from "./pages/admin/Products";
 import Customers from "./pages/admin/Customers";
 import Analytics from "./pages/admin/Analytics";
 import Settings from "./pages/admin/Settings";
+import Reviews from "./pages/admin/Reviews";
+import PublicReviews from "./pages/PublicReviews";
 import ScrollToTop from "./components/ScrollToTop";
 import NotFound from "./pages/NotFound";
 
@@ -42,6 +46,9 @@ function App() {
             <Route path="/artificial-grass" element={<ArtificialGrass />} />
             <Route path="/consulting"       element={<Consulting />} />
             <Route path="/cart"             element={<Cart />} />
+            <Route path="/checkout"         element={<Checkout />} />
+            <Route path="/payment-success"  element={<PaymentSuccess />} />
+            <Route path="/reviews"          element={<PublicReviews />} />
 
             {/* ── Admin login (public) ─────────────────────────────── */}
             <Route path="/adminlogin/login" element={<AdminLogin />} />
@@ -61,6 +68,7 @@ function App() {
               <Route path="customers" element={<Customers />} />
               <Route path="analytics" element={<Analytics />} />
               <Route path="settings"  element={<Settings />} />
+              <Route path="reviews"   element={<Reviews />} />
             </Route>
 
             {/* ── 404 ──────────────────────────────────────────────── */}
