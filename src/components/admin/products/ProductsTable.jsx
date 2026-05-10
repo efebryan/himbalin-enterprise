@@ -89,6 +89,7 @@ const ProductsTable = ({ products, loading, fetchProducts }) => {
         category: productData.category,
         price: typeof productData.price === 'string' ? Number(productData.price.replace(/[^0-9.-]+/g,"")) : productData.price,
         availability: productData.status,
+        stock: productData.stock,
         image_url: imageUrl,
       };
 

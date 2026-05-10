@@ -15,6 +15,7 @@ const ProductCard = (props) => {
     reviews,
     image,
     badge,
+    stock,
   } = props.product || props;
 
   const { addToCart, isInCart } = useCart();
@@ -116,6 +117,17 @@ const ProductCard = (props) => {
           <h3 className="font-serif text-lg font-bold text-himbalin-dark mb-1 group-hover:text-himbalin-gold transition-colors">
             {name || "Untitled Product"}
           </h3>
+          <div className="mb-2">
+            {stock !== undefined && stock > 0 ? (
+              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
+                {stock} IN STOCK
+              </span>
+            ) : stock === 0 ? (
+              <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2.5 py-1 rounded-full border border-red-100">
+                OUT OF STOCK
+              </span>
+            ) : null}
+          </div>
           <p className="font-sans text-xs text-gray-400 mb-6 font-light">
             {description || "No description available"}
           </p>
