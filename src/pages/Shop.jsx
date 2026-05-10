@@ -402,8 +402,8 @@ const Shop = () => {
                   </div>
                 )}
 
-                {/* Pagination (only when there are results) */}
-                {filtered.length > 0 && (
+                {/* Pagination (only when there are more than 10 results) */}
+                {filtered.length > 10 && (
                   <div className="flex flex-col items-center gap-6 mt-4 pb-12">
                     <ShopPagination />
                   </div>
