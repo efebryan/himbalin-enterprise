@@ -66,6 +66,34 @@ export async function uploadProductImage(file) {
   return publicUrl
 }
 
+/** Upload a brand asset (logo, favicon, avatar) to Supabase Storage */
+export async function uploadBrandAsset(file) {
+  const fileExt = file.name.split('.').pop()
+  const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`
+  const filePath = `public/${fileName}`
+
+  const { error: uploadError } = await supabase.storage
+    .from('brand-assets')
+    .upload(filePath, file)
+
+  if (uploadError) throw uploadError
+
+  const { data: { publicUrl } } = supabase.storage
+    .from('brand-assets')
+    .getPublicUrl(filePath)
+
+  return publicUrl
+}
+
+/** Update an admin profile */
+export async function updateAdminProfile(id, updates) {
+  const { error } = await supabase
+    .from('admin_users')
+    .update(updates)
+    .eq('id', id)
+  if (error) throw error
+}
+
 /** Create a new product (admin) */
 export async function createProduct(product) {
   const { data, error } = await supabase
@@ -232,7 +260,7 @@ export async function getSiteSettings() {
     .from('site_settings')
     .select('*')
     .limit(1)
-    .single()
+    .maybeSingle()
   if (error) throw error
   return data
 }

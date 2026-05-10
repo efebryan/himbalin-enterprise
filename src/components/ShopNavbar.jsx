@@ -1,16 +1,22 @@
 import { FiShoppingCart, FiSearch, FiUser } from "react-icons/fi";
 import { Link } from "react-router-dom";
+import { useSiteSettings } from "../context/SiteSettingsContext";
 
 const ShopNavbar = () => {
+  const { settings } = useSiteSettings();
   return (
     <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 px-8 py-4 flex items-center justify-between">
       {/* Brand */}
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded bg-himbalin-gold flex items-center justify-center">
-          <span className="font-serif font-bold text-himbalin-dark text-xl leading-none">
-            H
-          </span>
-        </div>
+        {settings?.store_logo ? (
+          <img src={settings.store_logo} alt="Logo" className="w-8 h-8 object-contain rounded" />
+        ) : (
+          <div className="w-8 h-8 rounded bg-himbalin-gold flex items-center justify-center">
+            <span className="font-serif font-bold text-himbalin-dark text-xl leading-none">
+              H
+            </span>
+          </div>
+        )}
         <Link
           to="/"
           className="font-serif text-xl font-bold tracking-tight text-himbalin-dark"

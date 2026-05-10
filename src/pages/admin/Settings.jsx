@@ -4,7 +4,9 @@ import {
   FiSave, FiCamera, FiEye, FiEyeOff, FiCheck
 } from "react-icons/fi";
 import Toast from "../../components/admin/products/Toast";
-import { getSiteSettings, updateSiteSettings } from "../../lib/api";
+import { getSiteSettings, updateSiteSettings, uploadBrandAsset, updateAdminProfile } from "../../lib/api";
+import { useAdminAuth } from "../../context/AdminAuthContext";
+import { useSiteSettings } from "../../context/SiteSettingsContext";
 
 const TABS = [
   { id: "profile", label: "Profile", icon: FiUser },
@@ -19,6 +21,9 @@ const Settings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settingsId, setSettingsId] = useState(null);
+  
+  const { admin, updateLocalAdmin } = useAdminAuth();
+  const { fetchSettings } = useSiteSettings();
 
   // ── Profile State ──
   const [profile, setProfile] = useState({
@@ -65,6 +70,8 @@ const Settings = () => {
     taxRate: "7.5",
     minOrderAmount: "50000",
     freeShippingThreshold: "500000",
+    storeLogo: "",
+    faviconUrl: "",
   });
 
   // ── Load settings from Supabase on mount ──
@@ -91,6 +98,8 @@ const Settings = () => {
             taxRate: String(data.tax_rate || "7.5"),
             minOrderAmount: String(data.min_order_amount || "50000"),
             freeShippingThreshold: String(data.free_shipping_threshold || "500000"),
+            storeLogo: data.store_logo || "",
+            faviconUrl: data.favicon_url || "",
           });
         }
       } catch (err) {
@@ -101,6 +110,36 @@ const Settings = () => {
     };
     loadSettings();
   }, []);
+
+  // ── Upload Handlers ──
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !admin?.id) return;
+    showToast("Uploading photo...", "success");
+    try {
+      const publicUrl = await uploadBrandAsset(file);
+      await updateAdminProfile(admin.id, { avatar_url: publicUrl });
+      updateLocalAdmin({ avatar_url: publicUrl });
+      showToast("Profile photo updated!");
+    } catch (err) {
+      console.error("Avatar upload error:", err);
+      showToast(`Failed to upload photo: ${err.message || err}`, "error");
+    }
+  };
+
+  const handleStoreAssetUpload = async (e, type) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    showToast(`Uploading image...`, "success");
+    try {
+      const publicUrl = await uploadBrandAsset(file);
+      setStore((prev) => ({ ...prev, [type]: publicUrl }));
+      showToast(`Image uploaded! Don't forget to save.`, "success");
+    } catch (err) {
+      console.error("Store asset upload error:", err);
+      showToast(`Failed to upload image: ${err.message || err}`, "error");
+    }
+  };
 
   // ── Save profile to Supabase ──
   const saveProfile = async () => {
@@ -138,7 +177,11 @@ const Settings = () => {
         tax_rate: parseFloat(store.taxRate) || 7.5,
         min_order_amount: parseFloat(store.minOrderAmount) || 50000,
         free_shipping_threshold: parseFloat(store.freeShippingThreshold) || 500000,
+        store_logo: store.storeLogo,
+        favicon_url: store.faviconUrl,
       });
+      // Refresh the global SiteSettingsContext so the logo propagates sitewide
+      await fetchSettings();
       showToast("Store settings saved!");
     } catch (err) {
       console.error("Failed to save store settings:", err);
@@ -189,13 +232,14 @@ const Settings = () => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
         <div className="relative group">
           <img
-            src="https://i.pravatar.cc/150?u=a042581f4e29026024d"
+            src={admin?.avatar_url || "https://i.pravatar.cc/150?u=a042581f4e29026024d"}
             alt="Profile"
             className="w-20 h-20 rounded-full border-4 border-[#F4A623]/20 object-cover"
           />
-          <button className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+          <label className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
             <FiCamera className="text-white text-lg" />
-          </button>
+            <input type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} />
+          </label>
         </div>
         <div>
           <h3 className="text-lg font-bold text-[#2B1A12]">{profile.firstName} {profile.lastName}</h3>
@@ -521,6 +565,43 @@ const Settings = () => {
             rows={2}
             className={`${inputBase} resize-none`}
           />
+        </div>
+
+        {/* Brand Assets */}
+        <div className="mt-8">
+          <h3 className="text-sm font-bold text-[#2B1A12] mb-4 flex items-center gap-2">
+            <FiCamera className="text-[#F4A623]" /> Brand Assets
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <label className="text-xs font-bold text-gray-500 mb-1.5 block">Store Logo</label>
+              <div className="flex items-center gap-4">
+                {store.storeLogo ? (
+                  <img src={store.storeLogo} alt="Logo" className="h-12 w-auto object-contain bg-gray-50 rounded border border-gray-100 p-1" />
+                ) : (
+                  <div className="h-12 w-12 bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400">None</div>
+                )}
+                <label className="cursor-pointer px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors">
+                  Upload Logo
+                  <input type="file" className="hidden" accept="image/*" onChange={(e) => handleStoreAssetUpload(e, 'storeLogo')} />
+                </label>
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-500 mb-1.5 block">Favicon</label>
+              <div className="flex items-center gap-4">
+                {store.faviconUrl ? (
+                  <img src={store.faviconUrl} alt="Favicon" className="h-12 w-12 object-contain bg-gray-50 rounded border border-gray-100 p-1" />
+                ) : (
+                  <div className="h-12 w-12 bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400">None</div>
+                )}
+                <label className="cursor-pointer px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors">
+                  Upload Favicon
+                  <input type="file" className="hidden" accept="image/*" onChange={(e) => handleStoreAssetUpload(e, 'faviconUrl')} />
+                </label>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

@@ -89,6 +89,10 @@ export function AdminAuthProvider({ children }) {
     setSession(null);
   }, []);
 
+  const updateLocalAdmin = useCallback((updates) => {
+    setAdmin((prev) => (prev ? { ...prev, ...updates } : prev));
+  }, []);
+
   const value = {
     admin,
     session,
@@ -96,6 +100,7 @@ export function AdminAuthProvider({ children }) {
     isAuthenticated: !!admin && !!session,
     signIn,
     signOut,
+    updateLocalAdmin,
   };
 
   return (

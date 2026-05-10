@@ -1,6 +1,8 @@
 import { FiArrowRight } from "react-icons/fi";
+import { useSiteSettings } from "../context/SiteSettingsContext";
 
 const AboutFooter = () => {
+  const { settings } = useSiteSettings();
   return (
     <footer className="bg-[#1A100B] text-himbalin-beige pt-20 pb-8 px-8 border-t border-himbalin-beige/10">
       <div className="container mx-auto">
@@ -8,11 +10,15 @@ const AboutFooter = () => {
           {/* Column 1: Brand */}
           <div className="lg:pr-8">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-8 rounded bg-himbalin-gold flex items-center justify-center">
-                <span className="font-serif font-bold text-himbalin-dark text-xl leading-none">
-                  H
-                </span>
-              </div>
+              {settings?.store_logo ? (
+                <img src={settings.store_logo} alt="Logo" className="w-8 h-8 object-contain rounded" />
+              ) : (
+                <div className="w-8 h-8 rounded bg-himbalin-gold flex items-center justify-center">
+                  <span className="font-serif font-bold text-himbalin-dark text-xl leading-none">
+                    H
+                  </span>
+                </div>
+              )}
               <span className="font-serif text-2xl font-bold tracking-wide text-white">
                 Himbalin
               </span>

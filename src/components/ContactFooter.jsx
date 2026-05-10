@@ -4,8 +4,10 @@ import {
   FaPinterestP,
   FaGlobe,
 } from "react-icons/fa";
+import { useSiteSettings } from "../context/SiteSettingsContext";
 
 const ContactFooter = () => {
+  const { settings } = useSiteSettings();
   return (
     <footer className="bg-[#4D3227] text-white pt-24 pb-12 px-8">
       <div className="container mx-auto max-w-7xl">
@@ -13,11 +15,15 @@ const ContactFooter = () => {
           {/* Column 1: Brand Info */}
           <div className="lg:pr-12">
             <div className="flex items-center gap-3 mb-8">
-              <div className="w-8 h-8 rounded bg-himbalin-gold flex items-center justify-center">
-                <span className="font-serif font-bold text-himbalin-dark text-xl leading-none">
-                  H
-                </span>
-              </div>
+              {settings?.store_logo ? (
+                <img src={settings.store_logo} alt="Logo" className="w-8 h-8 object-contain rounded" />
+              ) : (
+                <div className="w-8 h-8 rounded bg-himbalin-gold flex items-center justify-center">
+                  <span className="font-serif font-bold text-himbalin-dark text-xl leading-none">
+                    H
+                  </span>
+                </div>
+              )}
               <span className="font-serif text-2xl font-bold tracking-wide">
                 Himbalin
               </span>

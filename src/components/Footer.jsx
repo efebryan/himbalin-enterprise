@@ -1,22 +1,9 @@
-import { useState, useEffect } from "react";
 import { FiInstagram, FiFacebook, FiTwitter } from "react-icons/fi";
 import { Link } from "react-router-dom";
-import { getSiteSettings } from "../lib/api";
+import { useSiteSettings } from "../context/SiteSettingsContext";
 
 const Footer = () => {
-  const [settings, setSettings] = useState(null);
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const data = await getSiteSettings();
-        setSettings(data);
-      } catch (err) {
-        console.error("Failed to load footer settings:", err);
-      }
-    };
-    load();
-  }, []);
+  const { settings } = useSiteSettings();
 
   const storeName = settings?.store_name || "Himbalin Enterprise";
   const storeEmail = settings?.store_email || "info@himbalin.com";
@@ -29,11 +16,15 @@ const Footer = () => {
           {/* Column 1: Brand */}
           <div className="lg:pr-8">
             <div className="flex items-center gap-2 mb-6">
-              <div className="w-8 h-8 rounded bg-himbalin-gold flex items-center justify-center">
-                <span className="font-serif font-bold text-himbalin-dark text-xl leading-none">
-                  H
-                </span>
-              </div>
+              {settings?.store_logo ? (
+                <img src={settings.store_logo} alt="Logo" className="w-8 h-8 object-contain rounded" />
+              ) : (
+                <div className="w-8 h-8 rounded bg-himbalin-gold flex items-center justify-center shrink-0">
+                  <span className="font-serif font-bold text-himbalin-dark text-xl leading-none">
+                    H
+                  </span>
+                </div>
+              )}
               <span className="font-serif text-2xl font-bold tracking-wide">
                 {storeName.split(" ")[0] || "Himbalin"}
               </span>

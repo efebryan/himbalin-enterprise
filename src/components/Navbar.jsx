@@ -3,10 +3,12 @@ import { FiShoppingCart, FiMenu, FiX } from "react-icons/fi";
 import { Link, NavLink } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "../context/CartContext";
+import { useSiteSettings } from "../context/SiteSettingsContext";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { cartCount } = useCart();
+  const { settings } = useSiteSettings();
 
   const navLinks = [
     { name: "Home", path: "/" },
@@ -23,11 +25,15 @@ const Navbar = () => {
     <nav className="sticky top-0 z-50 bg-himbalin-dark text-himbalin-beige px-6 md:px-8 py-5 flex items-center justify-between shadow-soft">
       {/* Logo */}
       <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded bg-himbalin-gold flex items-center justify-center">
-          <span className="font-serif font-bold text-himbalin-dark text-xl leading-none">
-            H
-          </span>
-        </div>
+        {settings?.store_logo ? (
+          <img src={settings.store_logo} alt="Logo" className="w-8 h-8 object-contain rounded" />
+        ) : (
+          <div className="w-8 h-8 rounded bg-himbalin-gold flex items-center justify-center shrink-0">
+            <span className="font-serif font-bold text-himbalin-dark text-xl leading-none">
+              H
+            </span>
+          </div>
+        )}
         <Link to="/" className="font-serif text-2xl font-bold tracking-wide">
           Himbalin
         </Link>
@@ -115,9 +121,13 @@ const Navbar = () => {
             >
               <div className="flex items-center justify-between mb-12">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded bg-himbalin-gold flex items-center justify-center">
-                    <span className="font-serif font-bold text-himbalin-dark text-xl leading-none">H</span>
-                  </div>
+                  {settings?.store_logo ? (
+                    <img src={settings.store_logo} alt="Logo" className="w-8 h-8 object-contain rounded" />
+                  ) : (
+                    <div className="w-8 h-8 rounded bg-himbalin-gold flex items-center justify-center">
+                      <span className="font-serif font-bold text-himbalin-dark text-xl leading-none">H</span>
+                    </div>
+                  )}
                   <span className="font-serif text-2xl font-bold tracking-wide">Himbalin</span>
                 </div>
                 <button

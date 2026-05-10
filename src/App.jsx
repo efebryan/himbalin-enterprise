@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { CartProvider } from "./context/CartContext";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
+import { SiteSettingsProvider } from "./context/SiteSettingsContext";
 import ProtectedAdminRoute from "./components/admin/ProtectedAdminRoute";
 
 import Home from "./pages/Home";
@@ -30,10 +31,11 @@ import NotFound from "./pages/NotFound";
 
 function App() {
   return (
-    <AdminAuthProvider>
-      <CartProvider>
-        <Router>
-          <ScrollToTop />
+    <SiteSettingsProvider>
+      <AdminAuthProvider>
+        <CartProvider>
+          <Router>
+            <ScrollToTop />
           <Routes>
             {/* ── Public routes ───────────────────────────────────── */}
             <Route path="/"                 element={<Home />} />
@@ -77,6 +79,7 @@ function App() {
         </Router>
       </CartProvider>
     </AdminAuthProvider>
+    </SiteSettingsProvider>
   );
 }
 

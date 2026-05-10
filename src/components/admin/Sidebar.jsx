@@ -9,10 +9,18 @@ import {
   MdSettings,
   MdRateReview,
 } from "react-icons/md";
-import { RiLayoutGridFill, RiCloseLine } from "react-icons/ri";
+import { RiCloseLine } from "react-icons/ri";
+import { useSiteSettings } from "../../context/SiteSettingsContext";
+import { useAdminAuth } from "../../context/AdminAuthContext";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const location = useLocation();
+  const { settings } = useSiteSettings();
+  const { admin } = useAdminAuth();
+
+  const adminName = admin?.full_name || "Admin";
+  const adminRole = admin?.role === "super_admin" ? "Super Admin" : "Administrator";
+  const adminInitials = adminName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
 
   const navLinks = [
     { name: "Dashboard", path: "/admin", icon: <MdDashboard className="text-xl" />, exact: true },
@@ -40,11 +48,17 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         {/* Logo and Close Button */}
         <div className="p-6 flex items-center justify-between border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="bg-[#F4A623] rounded p-1.5 flex items-center justify-center">
-              <RiLayoutGridFill className="text-[#2B1A12] text-xl" />
-            </div>
+            {settings?.store_logo ? (
+              <img src={settings.store_logo} alt="Logo" className="w-9 h-9 object-contain rounded" />
+            ) : (
+              <div className="bg-[#F4A623] rounded p-1.5 flex items-center justify-center">
+                <span className="font-serif font-bold text-[#2B1A12] text-xl leading-none">H</span>
+              </div>
+            )}
             <div>
-              <h1 className="text-lg font-serif font-bold text-white leading-none">Himbalin</h1>
+              <h1 className="text-lg font-serif font-bold text-white leading-none">
+                {settings?.store_name?.split(" ")[0] || "Himbalin"}
+              </h1>
               <p className="text-[10px] font-semibold text-[#F4A623] tracking-wider uppercase">Enterprise Admin</p>
             </div>
           </div>
@@ -84,14 +98,20 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         {/* Profile */}
         <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
           <div className="flex items-center gap-3">
-            <img
-              src="https://i.pravatar.cc/150?u=a042581f4e29026024d"
-              alt="Admin"
-              className="w-9 h-9 rounded-full border-2 border-[#F4A623]/40"
-            />
+            {admin?.avatar_url ? (
+              <img
+                src={admin.avatar_url}
+                alt={adminName}
+                className="w-9 h-9 rounded-full border-2 border-[#F4A623]/40 object-cover"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#F5A623] to-[#e0951a] flex items-center justify-center text-[#2B1A12] text-xs font-bold border-2 border-[#F4A623]/40">
+                {adminInitials}
+              </div>
+            )}
             <div className="flex flex-col">
-              <span className="text-sm font-bold text-white leading-tight">Alex Rivera</span>
-              <span className="text-xs text-[#F4A623] font-medium">Admin Lead</span>
+              <span className="text-sm font-bold text-white leading-tight">{adminName.split(" ")[0]}</span>
+              <span className="text-xs text-[#F4A623] font-medium">{adminRole}</span>
             </div>
           </div>
           <Link to="/admin/settings" onClick={() => setSidebarOpen(false)} className="text-white/30 hover:text-white/70 transition-colors p-1">
