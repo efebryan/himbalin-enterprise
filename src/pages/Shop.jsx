@@ -4,7 +4,7 @@ import ShopSidebar from "../components/ShopSidebar";
 import ProductCard from "../components/ProductCard";
 import ShopPagination from "../components/ShopPagination";
 import Footer from "../components/Footer";
-import { FiGrid, FiList, FiChevronDown, FiX } from "react-icons/fi";
+import { FiGrid, FiList, FiChevronDown, FiX, FiFilter } from "react-icons/fi";
 import PageLoader from "../components/PageLoader";
 import { AnimatePresence, motion } from "framer-motion";
 import { getProducts } from "../lib/api";
@@ -18,8 +18,6 @@ const SORT_OPTIONS = [
   { label: "Most Reviewed", value: "reviews" },
 ];
 
-const PRICE_MAX = 3000000;
-
 // ─── Component ────────────────────────────────────────────────────────────────
 const Shop = () => {
   const [loading, setLoading] = useState(true);
@@ -27,8 +25,8 @@ const Shop = () => {
 
   // Filter state
   const [activeCategory, setActiveCategory] = useState("All Products");
-  const [priceRange, setPriceRange] = useState([0, PRICE_MAX]);
   const [activeAvailability, setActiveAvailability] = useState([]);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [activeMaterials, setActiveMaterials] = useState([]);
   const [sortBy, setSortBy] = useState("popularity");
   const [viewMode, setViewMode] = useState("grid"); // "grid" | "list"
@@ -56,11 +54,6 @@ const Shop = () => {
     if (activeCategory !== "All Products") {
       list = list.filter((p) => p.category === activeCategory);
     }
-
-    // Price
-    list = list.filter(
-      (p) => p.price >= priceRange[0] && p.price <= priceRange[1]
-    );
 
     // Availability
     if (activeAvailability.length > 0) {
@@ -91,7 +84,7 @@ const Shop = () => {
     }
 
     return list;
-  }, [allProducts, activeCategory, priceRange, activeAvailability, activeMaterials, sortBy]);
+  }, [allProducts, activeCategory, activeAvailability, activeMaterials, sortBy]);
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const toggleMaterial = (mat) =>
@@ -106,7 +99,6 @@ const Shop = () => {
 
   const resetAll = () => {
     setActiveCategory("All Products");
-    setPriceRange([0, PRICE_MAX]);
     setActiveAvailability([]);
     setActiveMaterials([]);
     setSortBy("popularity");
@@ -114,8 +106,6 @@ const Shop = () => {
 
   const hasActiveFilters =
     activeCategory !== "All Products" ||
-    priceRange[0] > 0 ||
-    priceRange[1] < PRICE_MAX ||
     activeAvailability.length > 0 ||
     activeMaterials.length > 0;
 
@@ -164,7 +154,16 @@ const Shop = () => {
                 </div>
 
                 {/* View Toggle + Sort */}
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 sm:gap-4">
+                  {/* Mobile Filters Toggle */}
+                  <button
+                    onClick={() => setShowMobileFilters(true)}
+                    className="lg:hidden flex items-center gap-2 px-3 py-2.5 sm:px-4 bg-white/5 border border-white/10 rounded-lg text-sm font-medium text-white hover:border-himbalin-gold transition-colors"
+                  >
+                    <FiFilter size={18} />
+                    <span className="hidden sm:inline">Filters</span>
+                  </button>
+
                   {/* Grid / List toggle */}
                   <div className="flex bg-white/5 rounded-lg border border-white/10 p-1">
                     <button
@@ -238,14 +237,11 @@ const Shop = () => {
           {/* Main Content */}
           <div className="container mx-auto px-4 md:px-8">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-              {/* Sidebar */}
-              <aside className="lg:col-span-3 bg-white rounded-2xl p-8 shadow-soft border border-gray-100 sticky top-24">
+              {/* Desktop Sidebar */}
+              <aside className="hidden lg:block lg:col-span-3 bg-white rounded-2xl p-8 shadow-soft border border-gray-100 sticky top-24">
                 <ShopSidebar
                   activeCategory={activeCategory}
                   onCategoryChange={setActiveCategory}
-                  priceRange={priceRange}
-                  maxPrice={PRICE_MAX}
-                  onPriceChange={setPriceRange}
                   activeAvailability={activeAvailability}
                   onAvailabilityToggle={toggleAvailability}
                   activeMaterials={activeMaterials}
@@ -254,6 +250,58 @@ const Shop = () => {
                   hasActiveFilters={hasActiveFilters}
                 />
               </aside>
+
+              {/* Mobile Sidebar Overlay */}
+              <AnimatePresence>
+                {showMobileFilters && (
+                  <>
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      onClick={() => setShowMobileFilters(false)}
+                      className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                    />
+                    <motion.div
+                      initial={{ x: "-100%" }}
+                      animate={{ x: 0 }}
+                      exit={{ x: "-100%" }}
+                      transition={{ type: "tween", duration: 0.3 }}
+                      className="fixed inset-y-0 left-0 w-[280px] sm:w-[320px] bg-white shadow-2xl z-50 lg:hidden flex flex-col h-full"
+                    >
+                      <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                        <h2 className="font-serif text-xl font-bold text-himbalin-dark">Filters</h2>
+                        <button
+                          onClick={() => setShowMobileFilters(false)}
+                          className="p-2 bg-gray-50 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
+                        >
+                          <FiX size={20} />
+                        </button>
+                      </div>
+                      <div className="flex-1 overflow-y-auto p-6">
+                        <ShopSidebar
+                          activeCategory={activeCategory}
+                          onCategoryChange={setActiveCategory}
+                          activeAvailability={activeAvailability}
+                          onAvailabilityToggle={toggleAvailability}
+                          activeMaterials={activeMaterials}
+                          onMaterialToggle={toggleMaterial}
+                          onReset={resetAll}
+                          hasActiveFilters={hasActiveFilters}
+                        />
+                      </div>
+                      <div className="p-6 border-t border-gray-100">
+                        <button
+                          onClick={() => setShowMobileFilters(false)}
+                          className="w-full bg-himbalin-gold text-himbalin-dark py-3 rounded-full font-bold shadow-soft hover:bg-yellow-500 transition-colors"
+                        >
+                          Apply Filters
+                        </button>
+                      </div>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
 
               {/* Product Area */}
               <div className="lg:col-span-9">
@@ -276,12 +324,6 @@ const Shop = () => {
                         onRemove={() => toggleAvailability(a)}
                       />
                     ))}
-                    {(priceRange[0] > 0 || priceRange[1] < PRICE_MAX) && (
-                      <Chip
-                        label={`${formatPrice(priceRange[0])} – ${formatPrice(priceRange[1])}`}
-                        onRemove={() => setPriceRange([0, PRICE_MAX])}
-                      />
-                    )}
                     <button
                       onClick={resetAll}
                       className="px-3 py-1 rounded-full text-xs font-bold text-red-500 border border-red-200 hover:bg-red-50 transition-colors"

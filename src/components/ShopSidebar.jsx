@@ -10,7 +10,6 @@ const CATEGORIES = [
 
 const MATERIALS = ["Oak", "Ceramic", "Linen", "Brass"];
 const AVAILABILITY_OPTIONS = ["In Stock", "Express Delivery"];
-const PRICE_MIN = 0;
 
 // Collapsible section wrapper
 const Section = ({ title, children, defaultOpen = true }) => {
@@ -38,9 +37,6 @@ const Section = ({ title, children, defaultOpen = true }) => {
 const ShopSidebar = ({
   activeCategory,
   onCategoryChange,
-  priceRange,
-  maxPrice,
-  onPriceChange,
   activeAvailability,
   onAvailabilityToggle,
   activeMaterials,
@@ -48,16 +44,6 @@ const ShopSidebar = ({
   onReset,
   hasActiveFilters,
 }) => {
-  // Local slider dragging state
-  const handleMinSlider = (e) => {
-    const val = Number(e.target.value);
-    if (val < priceRange[1]) onPriceChange([val, priceRange[1]]);
-  };
-
-  const handleMaxSlider = (e) => {
-    const val = Number(e.target.value);
-    if (val > priceRange[0]) onPriceChange([priceRange[0], val]);
-  };
 
   return (
     <div className="space-y-8">
@@ -117,74 +103,7 @@ const ShopSidebar = ({
         </div>
       </Section>
 
-      <div className="w-full h-px bg-gray-100" />
 
-      {/* ── Price Range ── */}
-      <Section title="Price Range">
-        <div className="space-y-4">
-          {/* Display */}
-          <div className="flex justify-between items-center">
-            <span className="font-sans text-xs font-bold text-himbalin-dark bg-himbalin-beige px-3 py-1.5 rounded-lg">
-              ${priceRange[0]}
-            </span>
-            <span className="font-sans text-xs text-gray-400">to</span>
-            <span className="font-sans text-xs font-bold text-himbalin-dark bg-himbalin-beige px-3 py-1.5 rounded-lg">
-              {priceRange[1] >= maxPrice ? `$${maxPrice}+` : `$${priceRange[1]}`}
-            </span>
-          </div>
-
-          {/* Track */}
-          <div className="relative h-6 flex items-center">
-            {/* Background track */}
-            <div className="absolute w-full h-1.5 bg-gray-100 rounded-full" />
-            {/* Active range fill */}
-            <div
-              className="absolute h-1.5 bg-himbalin-gold rounded-full"
-              style={{
-                left: `${(priceRange[0] / maxPrice) * 100}%`,
-                right: `${100 - (priceRange[1] / maxPrice) * 100}%`,
-              }}
-            />
-            {/* Min slider */}
-            <input
-              type="range"
-              min={PRICE_MIN}
-              max={maxPrice}
-              step={10}
-              value={priceRange[0]}
-              onChange={handleMinSlider}
-              className="absolute w-full h-1.5 opacity-0 cursor-pointer z-20"
-            />
-            {/* Max slider (layered on top) */}
-            <input
-              type="range"
-              min={PRICE_MIN}
-              max={maxPrice}
-              step={10}
-              value={priceRange[1]}
-              onChange={handleMaxSlider}
-              className="absolute w-full h-1.5 opacity-0 cursor-pointer z-20"
-            />
-            {/* Thumb: min */}
-            <div
-              className="absolute w-4 h-4 bg-white border-2 border-himbalin-gold rounded-full shadow-md z-10 pointer-events-none"
-              style={{ left: `calc(${(priceRange[0] / maxPrice) * 100}% - 8px)` }}
-            />
-            {/* Thumb: max */}
-            <div
-              className="absolute w-4 h-4 bg-white border-2 border-himbalin-gold rounded-full shadow-md z-10 pointer-events-none"
-              style={{ left: `calc(${(priceRange[1] / maxPrice) * 100}% - 8px)` }}
-            />
-          </div>
-
-          <div className="flex justify-between text-[10px] font-sans font-bold text-gray-300 uppercase tracking-widest">
-            <span>$0</span>
-            <span>${maxPrice}+</span>
-          </div>
-        </div>
-      </Section>
-
-      <div className="w-full h-px bg-gray-100" />
 
       {/* ── Availability ── */}
       <Section title="Availability">
