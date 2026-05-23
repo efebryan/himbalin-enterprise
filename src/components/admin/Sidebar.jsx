@@ -47,20 +47,22 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
       <div>
         {/* Logo and Close Button */}
         <div className="p-6 flex items-center justify-between border-b border-white/10">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center w-full max-w-[80%]">
             {settings?.store_logo ? (
-              <img src={settings.store_logo} alt="Logo" className="w-9 h-9 object-contain rounded" />
+              <img src={settings.store_logo} alt="Logo" className="h-12 sm:h-14 w-auto max-w-full object-contain" />
             ) : (
-              <div className="bg-[#F4A623] rounded p-1.5 flex items-center justify-center">
-                <span className="font-serif font-bold text-[#2B1A12] text-xl leading-none">H</span>
+              <div className="flex items-center gap-3">
+                <div className="bg-[#F4A623] rounded p-1.5 flex items-center justify-center shrink-0">
+                  <span className="font-serif font-bold text-[#2B1A12] text-xl leading-none">H</span>
+                </div>
+                <div>
+                  <h1 className="text-lg font-serif font-bold text-white leading-none">
+                    {settings?.store_name?.split(" ")[0] || "Himbalin"}
+                  </h1>
+                  <p className="text-[10px] font-semibold text-[#F4A623] tracking-wider uppercase">Enterprise Admin</p>
+                </div>
               </div>
             )}
-            <div>
-              <h1 className="text-lg font-serif font-bold text-white leading-none">
-                {settings?.store_name?.split(" ")[0] || "Himbalin"}
-              </h1>
-              <p className="text-[10px] font-semibold text-[#F4A623] tracking-wider uppercase">Enterprise Admin</p>
-            </div>
           </div>
           <button 
             className="lg:hidden text-white/50 hover:text-white p-1"
