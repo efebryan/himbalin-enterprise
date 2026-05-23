@@ -3,7 +3,7 @@ import { useSiteSettings } from "../context/SiteSettingsContext";
 
 const ContactMap = () => {
   const { settings } = useSiteSettings();
-  const address = settings?.store_address || "14 Admiralty Way, Lekki Phase 1, Lagos, Nigeria";
+  const address = settings?.store_address || "46 New Market Rd, City centre, Onitsha, Anambra, Nigeria";
 
   return (
     <section className="bg-himbalin-beige py-24 px-8 overflow-hidden">
