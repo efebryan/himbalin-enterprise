@@ -154,17 +154,14 @@ const Footer = () => {
               Our Location
             </h4>
             <div className="bg-white/5 p-1 rounded-xl mb-4 border border-white/10 relative h-24 overflow-hidden group">
-              <div
-                className="absolute inset-0 bg-cover bg-center opacity-60 group-hover:opacity-80 transition-opacity"
-                style={{
-                  backgroundImage: "url('/images/contact_map_static_istanbul.png')",
-                }}
+              <iframe
+                title="Store Location"
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(storeAddress)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                className="w-full h-full border-0 grayscale opacity-80 contrast-125"
+                allowFullScreen=""
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
               />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-himbalin-gold text-3xl drop-shadow-md">
-                  📍
-                </div>
-              </div>
             </div>
             <p className="font-sans text-sm text-himbalin-beige/70 leading-relaxed mb-4">
               {storeAddress}
