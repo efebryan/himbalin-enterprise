@@ -49,7 +49,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         <div className="p-6 flex items-center justify-between border-b border-white/10">
           <div className="flex items-center w-full max-w-[80%]">
             {settings?.store_logo ? (
-              <img src={settings.store_logo} alt="Logo" className="h-12 sm:h-14 w-auto max-w-full object-contain" />
+              <img src={settings.store_logo} alt="Logo" className="h-8 sm:h-10 w-auto max-w-full object-contain" />
             ) : (
               <div className="flex items-center gap-3">
                 <div className="bg-[#F4A623] rounded p-1.5 flex items-center justify-center shrink-0">
