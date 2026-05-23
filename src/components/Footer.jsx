@@ -153,7 +153,7 @@ const Footer = () => {
             <h4 className="font-serif text-lg font-bold mb-6 text-white">
               Our Location
             </h4>
-            <div className="bg-white/5 p-1 rounded-xl mb-4 border border-white/10 relative h-24 overflow-hidden group">
+            <div className="bg-white/5 rounded-xl mb-4 relative h-24 overflow-hidden group">
               <iframe
                 title="Store Location"
                 src={`https://maps.google.com/maps?q=${encodeURIComponent(storeAddress)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
