@@ -9,19 +9,21 @@ const AboutFooter = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 mb-16">
           {/* Column 1: Brand */}
           <div className="lg:pr-8">
-            <div className="flex items-center gap-3 mb-6">
+            <div className="mb-6">
               {settings?.store_logo ? (
-                <img src={settings.store_logo} alt="Logo" className="w-8 h-8 object-contain rounded" />
+                <img src={settings.store_logo} alt="Logo" className="h-8 sm:h-10 w-auto max-w-full object-contain" />
               ) : (
-                <div className="w-8 h-8 rounded bg-himbalin-gold flex items-center justify-center">
-                  <span className="font-serif font-bold text-himbalin-dark text-xl leading-none">
-                    H
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded bg-himbalin-gold flex items-center justify-center shrink-0">
+                    <span className="font-serif font-bold text-himbalin-dark text-xl leading-none">
+                      H
+                    </span>
+                  </div>
+                  <span className="font-serif text-2xl font-bold tracking-wide text-white">
+                    Himbalin
                   </span>
                 </div>
               )}
-              <span className="font-serif text-2xl font-bold tracking-wide text-white">
-                Himbalin
-              </span>
             </div>
             <p className="font-sans text-himbalin-beige/70 text-sm leading-relaxed mb-8">
               Defining luxury interiors since 1985. Crafting stories in wood and

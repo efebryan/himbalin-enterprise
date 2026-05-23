@@ -6,19 +6,23 @@ const AboutNavbar = () => {
   return (
     <nav className="sticky top-0 z-50 bg-himbalin-dark text-himbalin-beige px-8 py-5 flex items-center justify-between shadow-soft">
       {/* Logo */}
-      <div className="flex items-center gap-3">
+      <div>
         {settings?.store_logo ? (
-          <img src={settings.store_logo} alt="Logo" className="w-8 h-8 object-contain rounded" />
+          <Link to="/" className="flex items-center">
+            <img src={settings.store_logo} alt="Logo" className="h-8 sm:h-10 w-auto max-w-full object-contain" />
+          </Link>
         ) : (
-          <div className="w-8 h-8 rounded bg-himbalin-gold flex items-center justify-center">
-            <span className="font-serif font-bold text-himbalin-dark text-xl leading-none">
-              H
-            </span>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded bg-himbalin-gold flex items-center justify-center shrink-0">
+              <span className="font-serif font-bold text-himbalin-dark text-xl leading-none">
+                H
+              </span>
+            </div>
+            <Link to="/" className="font-serif text-2xl font-bold tracking-wide">
+              Himbalin Enterprise
+            </Link>
           </div>
         )}
-        <Link to="/" className="font-serif text-2xl font-bold tracking-wide">
-          Himbalin Enterprise
-        </Link>
       </div>
 
       {/* Navigation Links */}

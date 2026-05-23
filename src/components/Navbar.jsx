@@ -24,19 +24,23 @@ const Navbar = () => {
   return (
     <nav className="sticky top-0 z-50 bg-himbalin-dark text-himbalin-beige px-6 md:px-8 py-5 flex items-center justify-between shadow-soft">
       {/* Logo */}
-      <div className="flex items-center gap-2">
+      <div>
         {settings?.store_logo ? (
-          <img src={settings.store_logo} alt="Logo" className="w-8 h-8 object-contain rounded" />
+          <Link to="/" className="flex items-center">
+            <img src={settings.store_logo} alt="Logo" className="h-8 sm:h-10 w-auto max-w-full object-contain" />
+          </Link>
         ) : (
-          <div className="w-8 h-8 rounded bg-himbalin-gold flex items-center justify-center shrink-0">
-            <span className="font-serif font-bold text-himbalin-dark text-xl leading-none">
-              H
-            </span>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded bg-himbalin-gold flex items-center justify-center shrink-0">
+              <span className="font-serif font-bold text-himbalin-dark text-xl leading-none">
+                H
+              </span>
+            </div>
+            <Link to="/" className="font-serif text-2xl font-bold tracking-wide">
+              Himbalin
+            </Link>
           </div>
         )}
-        <Link to="/" className="font-serif text-2xl font-bold tracking-wide">
-          Himbalin
-        </Link>
       </div>
 
       {/* Navigation Links (Desktop) */}
@@ -120,16 +124,22 @@ const Navbar = () => {
               className="fixed top-0 right-0 bottom-0 w-[280px] bg-himbalin-dark shadow-2xl z-[70] md:hidden flex flex-col p-8"
             >
               <div className="flex items-center justify-between mb-12">
-                <div className="flex items-center gap-2">
-                  {settings?.store_logo ? (
-                    <img src={settings.store_logo} alt="Logo" className="w-8 h-8 object-contain rounded" />
-                  ) : (
+                <div>
+                {settings?.store_logo ? (
+                  <Link to="/" onClick={() => setIsOpen(false)} className="flex items-center">
+                    <img src={settings.store_logo} alt="Logo" className="h-8 sm:h-10 w-auto max-w-full object-contain" />
+                  </Link>
+                ) : (
+                  <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded bg-himbalin-gold flex items-center justify-center">
                       <span className="font-serif font-bold text-himbalin-dark text-xl leading-none">H</span>
                     </div>
-                  )}
-                  <span className="font-serif text-2xl font-bold tracking-wide">Himbalin</span>
-                </div>
+                    <Link to="/" onClick={() => setIsOpen(false)} className="font-serif text-2xl font-bold tracking-wide">
+                      Himbalin
+                    </Link>
+                  </div>
+                )}
+              </div>
                 <button
                   onClick={() => setIsOpen(false)}
                   className="text-white/40 hover:text-white"
