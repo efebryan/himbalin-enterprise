@@ -32,6 +32,7 @@ export const CartProvider = ({ children }) => {
         price: product.price,
         image: product.image,
         description: product.description,
+        priceUnit: product.priceUnit,
         quantity: 1,
         status: "In Stock",
       },

@@ -4,9 +4,8 @@ import AddProductDrawer from "./AddProductDrawer";
 import ViewProductModal from "./ViewProductModal";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import Toast from "./Toast";
-import { getProducts, createProduct, updateProduct, deleteProduct, uploadProductImage } from "../../../lib/api";
+import { getProducts, createProduct, updateProduct, deleteProduct, uploadProductImage, getCategories } from "../../../lib/api";
 
-const CATEGORIES = ["All Categories", "Furniture", "Rugs", "Office", "Artificial Grass", "Other"];
 const STATUSES = ["All Status", "In Stock", "Low Stock", "Out of Stock", "Draft"];
 
 const ProductsTable = ({ products, loading, fetchProducts }) => {
@@ -21,6 +20,22 @@ const ProductsTable = ({ products, loading, fetchProducts }) => {
   const [selectedStatus, setSelectedStatus] = useState("All Status");
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
+
+  const [categories, setCategories] = useState(["All Categories", "Furniture", "Rugs", "Office", "Artificial Grass", "Other"]);
+
+  useEffect(() => {
+    const fetchCats = async () => {
+      try {
+        const data = await getCategories();
+        if (data && data.length > 0) {
+          setCategories(["All Categories", ...data.map((c) => c.name)]);
+        }
+      } catch (err) {
+        console.error("Failed to load categories in ProductsTable:", err);
+      }
+    };
+    fetchCats();
+  }, [products]);
 
   const categoryRef = useRef(null);
   const filterRef = useRef(null);
@@ -91,6 +106,7 @@ const ProductsTable = ({ products, loading, fetchProducts }) => {
         availability: productData.status,
         stock: productData.stock,
         image_url: imageUrl,
+        price_unit: productData.priceUnit || 'per piece',
       };
 
       if (isEdit) {
@@ -176,7 +192,7 @@ const ProductsTable = ({ products, loading, fetchProducts }) => {
 
               {categoryDropdownOpen && (
                 <div className="absolute top-full left-0 mt-1.5 w-full md:w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-30 overflow-hidden">
-                  {CATEGORIES.map((cat) => (
+                  {categories.map((cat) => (
                     <button
                       key={cat}
                       onClick={() => {
@@ -365,6 +381,7 @@ const ProductsTable = ({ products, loading, fetchProducts }) => {
         }}
         onSave={handleSaveProduct}
         editProduct={editProduct}
+        categories={categories.filter(c => c !== "All Categories")}
       />
 
       {/* View Product Modal */}

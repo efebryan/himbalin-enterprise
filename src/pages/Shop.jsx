@@ -7,7 +7,7 @@ import Footer from "../components/Footer";
 import { FiGrid, FiList, FiChevronDown, FiX, FiFilter } from "react-icons/fi";
 import PageLoader from "../components/PageLoader";
 import { AnimatePresence, motion } from "framer-motion";
-import { getProducts } from "../lib/api";
+import { getProducts, getCategories } from "../lib/api";
 import { formatPrice } from "../lib/formatCurrency";
 
 const SORT_OPTIONS = [
@@ -22,6 +22,7 @@ const SORT_OPTIONS = [
 const Shop = () => {
   const [loading, setLoading] = useState(true);
   const [allProducts, setAllProducts] = useState([]);
+  const [categories, setCategories] = useState(["All Products", "Furniture", "Home Decor", "Floor & Outdoor"]);
 
   // Filter state
   const [activeCategory, setActiveCategory] = useState("All Products");
@@ -35,10 +36,16 @@ const Shop = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await getProducts();
-        setAllProducts(data);
+        const [prodData, catData] = await Promise.all([
+          getProducts(),
+          getCategories()
+        ]);
+        setAllProducts(prodData);
+        if (catData && catData.length > 0) {
+          setCategories(["All Products", ...catData.map((c) => c.name)]);
+        }
       } catch (err) {
-        console.error("Failed to load products:", err);
+        console.error("Failed to load products or categories:", err);
       } finally {
         setLoading(false);
       }
@@ -248,6 +255,7 @@ const Shop = () => {
                   onMaterialToggle={toggleMaterial}
                   onReset={resetAll}
                   hasActiveFilters={hasActiveFilters}
+                  categories={categories}
                 />
               </aside>
 
@@ -288,6 +296,7 @@ const Shop = () => {
                           onMaterialToggle={toggleMaterial}
                           onReset={resetAll}
                           hasActiveFilters={hasActiveFilters}
+                          categories={categories}
                         />
                       </div>
                       <div className="p-6 border-t border-gray-100">
@@ -480,6 +489,11 @@ const ProductListRow = ({ product }) => {
         <div>
           <p className="font-serif text-xl font-black text-himbalin-dark">
             {formatPrice(product.price)}
+            {product.priceUnit && (
+              <span className="text-[11px] text-gray-400 font-medium ml-1">
+                / {product.priceUnit}
+              </span>
+            )}
           </p>
           {product.oldPrice && (
             <p className="font-sans text-xs text-gray-300 line-through text-right">

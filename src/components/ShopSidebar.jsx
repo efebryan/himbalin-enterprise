@@ -43,6 +43,7 @@ const ShopSidebar = ({
   onMaterialToggle,
   onReset,
   hasActiveFilters,
+  categories = CATEGORIES,
 }) => {
 
   return (
@@ -71,7 +72,7 @@ const ShopSidebar = ({
       {/* ── Categories ── */}
       <Section title="Categories">
         <div className="space-y-2.5">
-          {CATEGORIES.map((cat) => {
+          {categories.map((cat) => {
             const isActive = activeCategory === cat;
             return (
               <label key={cat} className="flex items-center gap-3 cursor-pointer group">

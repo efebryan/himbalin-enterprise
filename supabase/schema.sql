@@ -10,6 +10,7 @@ create table if not exists products (
   name          text not null,
   description   text,
   price         numeric(10,2) not null,
+  price_unit    text default 'per piece',
   old_price     numeric(10,2),
   category      text,
   material      text,
@@ -117,3 +118,39 @@ values
   ('Premium Landscape Turf',  'High density, realistic soft touch',   12,   'Floor & Outdoor','Linen',   'Express Delivery', null,             4.9, 312, 'https://images.unsplash.com/photo-1596788062829-41d3ceec2f9d?w=800'),
   ('Ergonomic Mesh Chair',    'Lumbar support, adjustable arms',     350,   'Furniture',      'Brass',   'In Stock',        'POPULAR',         4.8, 215, 'https://images.unsplash.com/photo-1505843490538-5133c6c7d0e1?w=800'),
   ('Minimalist Shag Rug',     'Ultra-soft deep pile comfort',        340,   'Floor & Outdoor','Linen',   'In Stock',        null,              5.0,  56, 'https://images.unsplash.com/photo-1582582621959-48d27397dc69?w=800');
+
+
+-- ============================================================
+-- 6. PRODUCT CATEGORIES
+-- ============================================================
+create table if not exists product_categories (
+  id          uuid primary key default gen_random_uuid(),
+  name        text unique not null,
+  created_at  timestamptz default now()
+);
+
+alter table product_categories enable row level security;
+
+create policy "Allow public read access"
+  on product_categories for select using (true);
+
+create policy "Admins can insert categories"
+  on product_categories for insert
+  with check (is_admin());
+
+create policy "Admins can update categories"
+  on product_categories for update
+  using (is_admin());
+
+create policy "Admins can delete categories"
+  on product_categories for delete
+  using (is_admin());
+
+insert into product_categories (name)
+values
+  ('Furniture'),
+  ('Rugs'),
+  ('Office'),
+  ('Artificial Grass'),
+  ('Other')
+on conflict (name) do nothing;

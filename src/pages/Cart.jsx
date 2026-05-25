@@ -30,8 +30,7 @@ const Cart = () => {
   };
 
   const shipping = 0; // FREE
-  const tax = subtotal * 0.08;
-  const total = subtotal + shipping + tax;
+  const total = subtotal + shipping;
 
   return (
     <>
@@ -73,7 +72,14 @@ const Cart = () => {
                       <p className={`text-xs font-semibold mb-2 ${item.status === "In Stock" ? "text-green-600" : "text-himbalin-gold"}`}>
                         {item.status}
                       </p>
-                      <p className="text-gray-500 font-medium">{formatPrice(item.price)}</p>
+                      <p className="text-gray-500 font-medium">
+                        {formatPrice(item.price)}
+                        {item.priceUnit && (
+                          <span className="text-xs text-gray-400 font-medium ml-1">
+                            / {item.priceUnit}
+                          </span>
+                        )}
+                      </p>
                     </div>
 
                     <div className="flex items-center gap-4">
@@ -84,7 +90,12 @@ const Cart = () => {
                         >
                           <FiMinus size={14} />
                         </button>
-                        <span className="w-8 text-center font-bold text-sm">{item.quantity}</span>
+                        <span className="px-3 text-center font-bold text-sm min-w-[3.5rem] select-none whitespace-nowrap">
+                          {item.quantity}{" "}
+                          <span className="text-[11px] text-gray-400 font-medium">
+                            {item.priceUnit ? item.priceUnit.replace("per ", "") : "pcs"}
+                          </span>
+                        </span>
                         <button
                           onClick={() => updateQuantity(item.id, 1)}
                           className="p-2 hover:bg-gray-200 rounded-full transition-all text-gray-600"
@@ -130,10 +141,7 @@ const Cart = () => {
                     <span>Shipping</span>
                     <span className="text-green-600 font-bold uppercase tracking-wide">FREE</span>
                   </div>
-                  <div className="flex justify-between text-gray-500 font-medium">
-                    <span>Estimated Tax</span>
-                    <span className="text-[#1a1a1a] font-bold">{formatPrice(tax)}</span>
-                  </div>
+
                 </div>
 
                 <div className="flex justify-between items-end border-t border-gray-50 pt-8 mb-8">

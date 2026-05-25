@@ -24,8 +24,7 @@ const Checkout = () => {
   });
 
   const shipping = 0; // FREE
-  const tax = subtotal * 0.08;
-  const total = subtotal + shipping + tax;
+  const total = subtotal + shipping;
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -203,7 +202,9 @@ const Checkout = () => {
                       <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-lg" />
                       <div className="flex-1">
                         <h4 className="text-sm font-bold text-[#1a1a1a] line-clamp-1">{item.name}</h4>
-                        <p className="text-xs text-gray-500 mt-1">Qty: {item.quantity}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Qty: {item.quantity} {item.priceUnit ? `(${item.priceUnit})` : ""}
+                        </p>
                       </div>
                       <div className="font-bold text-sm">
                         {formatPrice(item.price * item.quantity)}
@@ -221,10 +222,7 @@ const Checkout = () => {
                     <span>Shipping</span>
                     <span className="text-green-600 font-bold uppercase">FREE</span>
                   </div>
-                  <div className="flex justify-between text-gray-500 text-sm font-medium">
-                    <span>Estimated Tax</span>
-                    <span className="text-[#1a1a1a] font-bold">{formatPrice(tax)}</span>
-                  </div>
+
                 </div>
 
                 <div className="flex justify-between items-end border-t border-gray-100 pt-6">

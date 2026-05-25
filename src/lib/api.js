@@ -8,6 +8,7 @@ function mapProduct(row) {
     ...row,
     image: row.image_url || row.image,        // DB uses image_url, frontend uses image
     oldPrice: row.old_price ?? row.oldPrice,   // DB uses old_price, frontend uses oldPrice
+    priceUnit: row.price_unit ?? row.priceUnit ?? 'per piece',
   }
 }
 
@@ -276,3 +277,118 @@ export async function updateSiteSettings(id, updates) {
   if (error) throw error
   return data
 }
+
+// ─── Notifications ──────────────────────────────────────────────────────────
+
+/** Fetch all notifications (admin) */
+export async function getNotifications() {
+  const { data, error } = await supabase
+    .from('notifications')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return data || []
+}
+
+/** Mark a single notification as read */
+export async function markNotificationRead(id) {
+  const { error } = await supabase
+    .from('notifications')
+    .update({ read: true })
+    .eq('id', id)
+  if (error) throw error
+}
+
+/** Mark all unread notifications as read */
+export async function markAllNotificationsRead() {
+  const { error } = await supabase
+    .from('notifications')
+    .update({ read: true })
+    .eq('read', false)
+  if (error) throw error
+}
+
+/** Delete a single notification */
+export async function deleteNotification(id) {
+  const { error } = await supabase
+    .from('notifications')
+    .delete()
+    .eq('id', id)
+  if (error) throw error
+}
+
+/** Delete all notifications */
+export async function deleteAllNotifications() {
+  const { error } = await supabase
+    .from('notifications')
+    .delete()
+    .neq('id', '00000000-0000-0000-0000-000000000000') // Deletes all rows
+  if (error) throw error
+}
+
+// ── Product Categories ────────────────────────────────────────────────────────
+
+/** Fetch all product categories sorted alphabetically */
+export async function getCategories() {
+  const { data, error } = await supabase
+    .from('product_categories')
+    .select('*')
+    .order('name', { ascending: true })
+  if (error) throw error
+  return data || []
+}
+
+/** Insert a new product category */
+export async function addCategory(name) {
+  const { data, error } = await supabase
+    .from('product_categories')
+    .insert([{ name }])
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+/** Update an existing category name and sync product references */
+export async function updateCategory(id, oldName, newName) {
+  // 1. Update the name in category list
+  const { data, error } = await supabase
+    .from('product_categories')
+    .update({ name: newName })
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+
+  // 2. Cascade changes to products category column
+  const { error: prodError } = await supabase
+    .from('products')
+    .update({ category: newName })
+    .eq('category', oldName)
+  if (prodError) {
+    console.error("Failed to rename category references on products:", prodError)
+  }
+
+  return data
+}
+
+/** Delete a category and map referencing products to 'Other' */
+export async function deleteCategory(id, name) {
+  // 1. Delete from categories list
+  const { error } = await supabase
+    .from('product_categories')
+    .delete()
+    .eq('id', id)
+  if (error) throw error
+
+  // 2. Move products referencing deleted category to 'Other'
+  const { error: prodError } = await supabase
+    .from('products')
+    .update({ category: 'Other' })
+    .eq('category', name)
+  if (prodError) {
+    console.error("Failed to reset category references on products:", prodError)
+  }
+}
+
+

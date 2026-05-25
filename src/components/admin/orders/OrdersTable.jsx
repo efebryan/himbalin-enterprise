@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from "react";
-import { FiEye, FiFilter, FiChevronDown, FiChevronUp, FiX, FiDownload, FiRefreshCw } from "react-icons/fi";
+import React, { useState, useRef, useEffect, useMemo } from "react";
+import { FiEye, FiFilter, FiChevronDown, FiChevronUp, FiX, FiDownload, FiRefreshCw, FiSearch } from "react-icons/fi";
 import ViewOrderModal from "./ViewOrderModal";
 import Toast from "../../admin/products/Toast";
 import { getOrders, updateOrderStatus } from "../../../lib/api";
@@ -15,7 +15,8 @@ const OrdersTable = () => {
   const [viewOrder, setViewOrder] = useState(null);
   const [toast, setToast] = useState({ visible: false, message: "", type: "success" });
 
-  // Filters
+  // Filters & Search
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("All Status");
   const [selectedPayment, setSelectedPayment] = useState("All Payments");
   const [selectedDateRange, setSelectedDateRange] = useState("All Time");
@@ -62,18 +63,21 @@ const OrdersTable = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  /** Map DB status to payment status for display */
+  /** Map DB status to payment status for display (Case-insensitive) */
   const getPaymentStatusFromOrder = (order) => {
-    if (order.status === "Paid" || order.status === "Delivered" || order.status === "Shipped" || order.status === "Processing") return "Paid";
-    if (order.status === "Failed") return "Failed";
+    const status = (order.status || "").toLowerCase();
+    if (["paid", "delivered", "shipped", "processing", "completed"].includes(status)) return "Paid";
+    if (status === "failed") return "Failed";
     return "Pending";
   };
 
-  /** Map DB status to order status for display */
+  /** Map DB status to order status for display (Case-insensitive) */
   const getOrderStatusFromOrder = (order) => {
-    // The DB status field may be: Pending, Paid, Processing, Shipped, Delivered, Cancelled
-    if (order.status === "Paid") return "Processing"; // Just paid = processing
-    return order.status;
+    const status = (order.status || "").toLowerCase();
+    if (status === "paid") return "Processing"; // Just paid = processing
+    if (status === "completed") return "Delivered"; // Completed = Delivered
+    if (!status) return "Pending";
+    return status.charAt(0).toUpperCase() + status.slice(1);
   };
 
   /** Format a date string */
@@ -104,17 +108,66 @@ const OrdersTable = () => {
     return `${count} item${count !== 1 ? "s" : ""}`;
   };
 
-  // Filter logic
-  const filteredOrders = orders.filter((order) => {
-    const paymentStatus = getPaymentStatusFromOrder(order);
-    const orderStatus = getOrderStatusFromOrder(order);
+  // Filter & Search Logic
+  const filteredOrders = useMemo(() => {
+    return orders.filter((order) => {
+      const paymentStatus = getPaymentStatusFromOrder(order);
+      const orderStatus = getOrderStatusFromOrder(order);
 
-    const matchesStatus =
-      selectedStatus === "All Status" || orderStatus === selectedStatus;
-    const matchesPayment =
-      selectedPayment === "All Payments" || paymentStatus === selectedPayment;
-    return matchesStatus && matchesPayment;
-  });
+      // 1. Search Query Filter
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const orderId = (order.id || "").toLowerCase();
+        const shortId = orderId.slice(0, 8);
+        const name = (order.customer_name || "").toLowerCase();
+        const email = (order.customer_email || "").toLowerCase();
+        
+        const cleanQ = q.startsWith("#") ? q.slice(1) : q;
+        
+        if (
+          !orderId.includes(cleanQ) &&
+          !shortId.includes(cleanQ) &&
+          !name.includes(cleanQ) &&
+          !email.includes(cleanQ)
+        ) {
+          return false;
+        }
+      }
+
+      // 2. Status Filter
+      if (selectedStatus !== "All Status" && orderStatus !== selectedStatus) {
+        return false;
+      }
+
+      // 3. Payment Filter
+      if (selectedPayment !== "All Payments" && paymentStatus !== selectedPayment) {
+        return false;
+      }
+
+      // 4. Date Range Filter
+      if (selectedDateRange !== "All Time") {
+        const date = new Date(order.created_at);
+        const today = new Date();
+
+        if (selectedDateRange === "Today") {
+          if (date.toDateString() !== today.toDateString()) return false;
+        } else if (selectedDateRange === "Last 7 Days") {
+          const cutoff = new Date();
+          cutoff.setDate(cutoff.getDate() - 7);
+          if (date < cutoff) return false;
+        } else if (selectedDateRange === "Last 30 Days") {
+          const cutoff = new Date();
+          cutoff.setDate(cutoff.getDate() - 30);
+          if (date < cutoff) return false;
+        } else if (selectedDateRange === "This Month") {
+          const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+          if (date < startOfMonth) return false;
+        }
+      }
+
+      return true;
+    });
+  }, [orders, searchQuery, selectedStatus, selectedPayment, selectedDateRange]);
 
   const activeFilterCount =
     (selectedStatus !== "All Status" ? 1 : 0) +
@@ -178,14 +231,69 @@ const OrdersTable = () => {
     setSelectedStatus("All Status");
     setSelectedPayment("All Payments");
     setSelectedDateRange("All Time");
+    setSearchQuery("");
+  };
+
+  /** Export filtered orders as CSV */
+  const handleExport = () => {
+    if (filteredOrders.length === 0) {
+      setToast({ visible: true, message: "No orders to export.", type: "error" });
+      return;
+    }
+
+    try {
+      // Define CSV headers
+      const headers = ["Order ID", "Customer Name", "Customer Email", "Date", "Total Price", "Payment Status", "Order Status", "Items Count"];
+      
+      // Map orders to CSV rows
+      const rows = filteredOrders.map(order => {
+        const paymentStatus = getPaymentStatusFromOrder(order);
+        const orderStatus = getOrderStatusFromOrder(order);
+        const itemsCount = order.items && Array.isArray(order.items)
+          ? order.items.reduce((sum, item) => sum + (item.quantity || 1), 0)
+          : 0;
+          
+        return [
+          order.id,
+          `"${order.customer_name?.replace(/"/g, '""') || ''}"`,
+          order.customer_email || '',
+          order.created_at ? new Date(order.created_at).toISOString() : '',
+          order.total || 0,
+          paymentStatus,
+          orderStatus,
+          itemsCount
+        ];
+      });
+
+      // Combine headers and rows
+      const csvContent = [
+        headers.join(","),
+        ...rows.map(e => e.join(","))
+      ].join("\n");
+
+      // Create download link
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `orders_export_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      setToast({ visible: true, message: `Successfully exported ${filteredOrders.length} orders.`, type: "success" });
+    } catch (err) {
+      console.error("Export failed:", err);
+      setToast({ visible: true, message: "Failed to export orders.", type: "error" });
+    }
   };
 
   return (
     <>
       <div className="bg-white rounded-2xl shadow-soft border border-gray-100 mb-8 overflow-hidden">
         {/* Header and Toolbar */}
-        <div className="p-4 md:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100">
-          <div className="flex items-center gap-3">
+        <div className="p-4 md:p-6 flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4 border-b border-gray-100">
+          <div className="flex items-center gap-3 shrink-0">
             <h2 className="text-lg md:text-xl font-serif font-bold text-[#2B1A12]">All Orders</h2>
             {activeFilterCount > 0 && (
               <span className="text-[10px] font-bold bg-[#F4A623] text-[#2B1A12] px-2 py-0.5 rounded-full">
@@ -193,149 +301,176 @@ const OrdersTable = () => {
               </span>
             )}
           </div>
-          <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full md:w-auto">
-            {/* Order Status Dropdown */}
-            <div className="relative flex-1 md:flex-none" ref={statusRef}>
-              <button
-                onClick={() => {
-                  setStatusDropdownOpen(!statusDropdownOpen);
-                  setDateDropdownOpen(false);
-                  setPaymentDropdownOpen(false);
-                }}
-                className={`flex items-center gap-1 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 border rounded-lg text-xs md:text-sm font-semibold transition-colors justify-center w-full md:w-auto ${
-                  selectedStatus !== "All Status"
-                    ? "border-[#F4A623] bg-[#F4A623]/5 text-[#2B1A12]"
-                    : "border-gray-200 text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                {selectedStatus}
-                {statusDropdownOpen ? <FiChevronUp className="shrink-0" /> : <FiChevronDown className="shrink-0" />}
-              </button>
-
-              {statusDropdownOpen && (
-                <div className="absolute top-full left-0 mt-1.5 w-full md:w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-30 overflow-hidden">
-                  {ORDER_STATUSES.map((status) => (
-                    <button
-                      key={status}
-                      onClick={() => {
-                        setSelectedStatus(status);
-                        setStatusDropdownOpen(false);
-                      }}
-                      className={`block w-full text-left px-4 py-2.5 text-sm font-medium transition-colors ${
-                        selectedStatus === status
-                          ? "bg-[#F4A623]/10 text-[#2B1A12] font-bold"
-                          : "text-gray-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      {status}
-                    </button>
-                  ))}
-                </div>
+          <div className="flex flex-col md:flex-row flex-wrap items-stretch md:items-center gap-3 w-full lg:w-auto">
+            {/* Search Input */}
+            <div className="relative w-full md:w-64 shrink-0">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <FiSearch className="text-gray-400 text-sm" />
+              </span>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search ID, customer, email..."
+                className="w-full pl-9 pr-8 py-1.5 md:py-2 border border-gray-200 rounded-lg text-xs md:text-sm focus:outline-none focus:ring-1 focus:ring-[#F4A623] focus:border-[#F4A623] text-gray-700 bg-white"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                >
+                  <FiX className="text-xs" />
+                </button>
               )}
             </div>
 
-            {/* Date Range Dropdown */}
-            <div className="relative flex-1 md:flex-none" ref={dateRef}>
-              <button
-                onClick={() => {
-                  setDateDropdownOpen(!dateDropdownOpen);
-                  setStatusDropdownOpen(false);
-                  setPaymentDropdownOpen(false);
-                }}
-                className={`flex items-center gap-1 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 border rounded-lg text-xs md:text-sm font-semibold transition-colors justify-center w-full md:w-auto ${
-                  selectedDateRange !== "All Time"
-                    ? "border-[#F4A623] bg-[#F4A623]/5 text-[#2B1A12]"
-                    : "border-gray-200 text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                {selectedDateRange}
-                {dateDropdownOpen ? <FiChevronUp className="shrink-0" /> : <FiChevronDown className="shrink-0" />}
-              </button>
+            <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full md:w-auto">
+              {/* Order Status Dropdown */}
+              <div className="relative flex-1 md:flex-none" ref={statusRef}>
+                <button
+                  onClick={() => {
+                    setStatusDropdownOpen(!statusDropdownOpen);
+                    setDateDropdownOpen(false);
+                    setPaymentDropdownOpen(false);
+                  }}
+                  className={`flex items-center gap-1 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 border rounded-lg text-xs md:text-sm font-semibold transition-colors justify-center w-full md:w-auto ${
+                    selectedStatus !== "All Status"
+                      ? "border-[#F4A623] bg-[#F4A623]/5 text-[#2B1A12]"
+                      : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  {selectedStatus}
+                  {statusDropdownOpen ? <FiChevronUp className="shrink-0" /> : <FiChevronDown className="shrink-0" />}
+                </button>
 
-              {dateDropdownOpen && (
-                <div className="absolute top-full left-0 mt-1.5 w-full md:w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-30 overflow-hidden">
-                  {DATE_RANGES.map((range) => (
-                    <button
-                      key={range}
-                      onClick={() => {
-                        setSelectedDateRange(range);
-                        setDateDropdownOpen(false);
-                      }}
-                      className={`block w-full text-left px-4 py-2.5 text-sm font-medium transition-colors ${
-                        selectedDateRange === range
-                          ? "bg-[#F4A623]/10 text-[#2B1A12] font-bold"
-                          : "text-gray-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      {range}
-                    </button>
-                  ))}
-                </div>
+                {statusDropdownOpen && (
+                  <div className="absolute top-full left-0 mt-1.5 w-full md:w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-30 overflow-hidden">
+                    {ORDER_STATUSES.map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => {
+                          setSelectedStatus(status);
+                          setStatusDropdownOpen(false);
+                        }}
+                        className={`block w-full text-left px-4 py-2.5 text-sm font-medium transition-colors ${
+                          selectedStatus === status
+                            ? "bg-[#F4A623]/10 text-[#2B1A12] font-bold"
+                            : "text-gray-600 hover:bg-gray-50"
+                        }`}
+                      >
+                        {status}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Date Range Dropdown */}
+              <div className="relative flex-1 md:flex-none" ref={dateRef}>
+                <button
+                  onClick={() => {
+                    setDateDropdownOpen(!dateDropdownOpen);
+                    setStatusDropdownOpen(false);
+                    setPaymentDropdownOpen(false);
+                  }}
+                  className={`flex items-center gap-1 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 border rounded-lg text-xs md:text-sm font-semibold transition-colors justify-center w-full md:w-auto ${
+                    selectedDateRange !== "All Time"
+                      ? "border-[#F4A623] bg-[#F4A623]/5 text-[#2B1A12]"
+                      : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  {selectedDateRange}
+                  {dateDropdownOpen ? <FiChevronUp className="shrink-0" /> : <FiChevronDown className="shrink-0" />}
+                </button>
+
+                {dateDropdownOpen && (
+                  <div className="absolute top-full left-0 mt-1.5 w-full md:w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-30 overflow-hidden">
+                    {DATE_RANGES.map((range) => (
+                      <button
+                        key={range}
+                        onClick={() => {
+                          setSelectedDateRange(range);
+                          setDateDropdownOpen(false);
+                        }}
+                        className={`block w-full text-left px-4 py-2.5 text-sm font-medium transition-colors ${
+                          selectedDateRange === range
+                            ? "bg-[#F4A623]/10 text-[#2B1A12] font-bold"
+                            : "text-gray-600 hover:bg-gray-50"
+                        }`}
+                      >
+                        {range}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Payment Filter Dropdown */}
+              <div className="relative flex-1 md:flex-none" ref={paymentRef}>
+                <button
+                  onClick={() => {
+                    setPaymentDropdownOpen(!paymentDropdownOpen);
+                    setStatusDropdownOpen(false);
+                    setDateDropdownOpen(false);
+                  }}
+                  className={`flex items-center gap-1 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 border rounded-lg text-xs md:text-sm font-semibold transition-colors justify-center w-full md:w-auto ${
+                    selectedPayment !== "All Payments"
+                      ? "border-[#F4A623] bg-[#F4A623]/5 text-[#2B1A12]"
+                      : "border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100"
+                  }`}
+                >
+                  <FiFilter className="shrink-0" />
+                  {selectedPayment !== "All Payments" ? selectedPayment : "Payment"}
+                </button>
+
+                {paymentDropdownOpen && (
+                  <div className="absolute top-full left-0 md:right-0 md:left-auto mt-1.5 w-full md:w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-30 overflow-hidden">
+                    {PAYMENT_STATUSES.map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => {
+                          setSelectedPayment(status);
+                          setPaymentDropdownOpen(false);
+                        }}
+                        className={`block w-full text-left px-4 py-2.5 text-sm font-medium transition-colors ${
+                          selectedPayment === status
+                            ? "bg-[#F4A623]/10 text-[#2B1A12] font-bold"
+                            : "text-gray-600 hover:bg-gray-50"
+                        }`}
+                      >
+                        {status}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Clear Filters */}
+              {(activeFilterCount > 0 || searchQuery.trim() !== "") && (
+                <button
+                  onClick={clearFilters}
+                  className="flex items-center gap-1 px-3 py-1.5 md:py-2 text-xs md:text-sm font-semibold text-red-500 hover:bg-red-50 border border-red-200 rounded-lg transition-colors"
+                >
+                  <FiX className="text-sm" /> Clear
+                </button>
               )}
-            </div>
 
-            {/* Payment Filter Dropdown */}
-            <div className="relative flex-1 md:flex-none" ref={paymentRef}>
+              {/* Refresh */}
               <button
-                onClick={() => {
-                  setPaymentDropdownOpen(!paymentDropdownOpen);
-                  setStatusDropdownOpen(false);
-                  setDateDropdownOpen(false);
-                }}
-                className={`flex items-center gap-1 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 border rounded-lg text-xs md:text-sm font-semibold transition-colors justify-center w-full md:w-auto ${
-                  selectedPayment !== "All Payments"
-                    ? "border-[#F4A623] bg-[#F4A623]/5 text-[#2B1A12]"
-                    : "border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100"
-                }`}
+                onClick={fetchOrders}
+                className="flex items-center gap-1 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 border border-gray-200 rounded-lg text-xs md:text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
               >
-                <FiFilter className="shrink-0" />
-                {selectedPayment !== "All Payments" ? selectedPayment : "Payment"}
+                <FiRefreshCw className={loading ? "animate-spin" : ""} />
               </button>
 
-              {paymentDropdownOpen && (
-                <div className="absolute top-full left-0 md:right-0 md:left-auto mt-1.5 w-full md:w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-30 overflow-hidden">
-                  {PAYMENT_STATUSES.map((status) => (
-                    <button
-                      key={status}
-                      onClick={() => {
-                        setSelectedPayment(status);
-                        setPaymentDropdownOpen(false);
-                      }}
-                      className={`block w-full text-left px-4 py-2.5 text-sm font-medium transition-colors ${
-                        selectedPayment === status
-                          ? "bg-[#F4A623]/10 text-[#2B1A12] font-bold"
-                          : "text-gray-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      {status}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Clear Filters */}
-            {activeFilterCount > 0 && (
-              <button
-                onClick={clearFilters}
-                className="flex items-center gap-1 px-3 py-1.5 md:py-2 text-xs md:text-sm font-semibold text-red-500 hover:bg-red-50 border border-red-200 rounded-lg transition-colors"
+              {/* Export */}
+              <button 
+                onClick={handleExport}
+                className="bg-[#F4A623] hover:bg-[#e09520] text-[#2B1A12] px-4 md:px-5 py-1.5 md:py-2 rounded-lg font-bold shadow-sm transition-all text-xs md:text-sm flex items-center gap-1 md:gap-2 flex-1 md:flex-none justify-center"
               >
-                <FiX className="text-sm" /> Clear
+                <FiDownload className="text-sm" /> Export
               </button>
-            )}
-
-            {/* Refresh */}
-            <button
-              onClick={fetchOrders}
-              className="flex items-center gap-1 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 border border-gray-200 rounded-lg text-xs md:text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
-            >
-              <FiRefreshCw className={loading ? "animate-spin" : ""} />
-            </button>
-
-            {/* Export */}
-            <button className="bg-[#F4A623] hover:bg-[#e09520] text-[#2B1A12] px-4 md:px-5 py-1.5 md:py-2 rounded-lg font-bold shadow-sm transition-all text-xs md:text-sm flex items-center gap-1 md:gap-2 flex-1 md:flex-none justify-center">
-              <FiDownload className="text-sm" /> Export
-            </button>
+            </div>
           </div>
         </div>
 
@@ -381,7 +516,12 @@ const OrdersTable = () => {
                           <div className="w-8 h-8 rounded-full bg-[#F4A623]/10 flex items-center justify-center text-xs font-bold text-[#2B1A12] border border-[#F4A623]/20">
                             {getInitials(order.customer_name)}
                           </div>
-                          <span className="text-sm font-bold text-[#2B1A12]">{order.customer_name}</span>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-bold text-[#2B1A12]">{order.customer_name}</span>
+                            {order.customer_email && (
+                              <span className="text-[10px] text-gray-400 font-medium">{order.customer_email}</span>
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm font-medium text-gray-500">{formatDate(order.created_at)}</td>

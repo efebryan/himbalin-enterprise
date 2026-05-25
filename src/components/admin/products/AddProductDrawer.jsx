@@ -18,7 +18,7 @@ const emptyForm = {
   images: [],
 };
 
-const AddProductDrawer = ({ isOpen, onClose, onSave, editProduct }) => {
+const AddProductDrawer = ({ isOpen, onClose, onSave, editProduct, categories = CATEGORIES }) => {
   const [form, setForm] = useState({ ...emptyForm });
   const [errors, setErrors] = useState({});
   const [previewImages, setPreviewImages] = useState([]);
@@ -343,7 +343,7 @@ const AddProductDrawer = ({ isOpen, onClose, onSave, editProduct }) => {
                 } ${!form.category ? "text-gray-400" : ""}`}
               >
                 <option value="">Select category...</option>
-                {CATEGORIES.map((cat) => (
+                {categories.map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
                   </option>

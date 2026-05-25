@@ -1,10 +1,19 @@
 import React, { useState, useEffect } from "react";
 import {
   FiUser, FiLock, FiMail, FiBell, FiGlobe, FiShield,
-  FiSave, FiCamera, FiEye, FiEyeOff, FiCheck
+  FiSave, FiCamera, FiEye, FiEyeOff, FiCheck, FiList, FiPlus, FiEdit2, FiTrash2, FiX
 } from "react-icons/fi";
 import Toast from "../../components/admin/products/Toast";
-import { getSiteSettings, updateSiteSettings, uploadBrandAsset, updateAdminProfile } from "../../lib/api";
+import { 
+  getSiteSettings, 
+  updateSiteSettings, 
+  uploadBrandAsset, 
+  updateAdminProfile,
+  getCategories,
+  addCategory,
+  updateCategory,
+  deleteCategory
+} from "../../lib/api";
 import { useAdminAuth } from "../../context/AdminAuthContext";
 import { useSiteSettings } from "../../context/SiteSettingsContext";
 
@@ -13,6 +22,7 @@ const TABS = [
   { id: "security", label: "Security", icon: FiLock },
   { id: "notifications", label: "Notifications", icon: FiBell },
   { id: "store", label: "Store", icon: FiGlobe },
+  { id: "categories", label: "Categories", icon: FiList },
 ];
 
 const Settings = () => {
@@ -21,8 +31,34 @@ const Settings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settingsId, setSettingsId] = useState(null);
+
+  // Categories States
+  const [categoriesList, setCategoriesList] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [newCatName, setNewCatName] = useState("");
+  const [editCatId, setEditCatId] = useState(null);
+  const [editCatName, setEditCatName] = useState("");
   
   const { admin, updateLocalAdmin } = useAdminAuth();
+
+  const loadCategories = async () => {
+    try {
+      setCategoriesLoading(true);
+      const data = await getCategories();
+      setCategoriesList(data);
+    } catch (err) {
+      console.error("Failed to load categories:", err);
+      showToast("Failed to load categories", "draft");
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "categories") {
+      loadCategories();
+    }
+  }, [activeTab]);
   const { fetchSettings } = useSiteSettings();
 
   // ── Profile State ──
@@ -67,7 +103,7 @@ const Settings = () => {
     storePhone: "",
     storeAddress: "",
     currency: "NGN (₦)",
-    taxRate: "7.5",
+    taxRate: "0",
     minOrderAmount: "50000",
     freeShippingThreshold: "500000",
     storeLogo: "",
@@ -95,7 +131,7 @@ const Settings = () => {
             storePhone: data.store_phone || "",
             storeAddress: data.store_address || "",
             currency: data.currency || "NGN (₦)",
-            taxRate: String(data.tax_rate || "7.5"),
+            taxRate: "0",
             minOrderAmount: String(data.min_order_amount || "50000"),
             freeShippingThreshold: String(data.free_shipping_threshold || "500000"),
             storeLogo: data.store_logo || "",
@@ -174,7 +210,7 @@ const Settings = () => {
         store_phone: store.storePhone,
         store_address: store.storeAddress,
         currency: store.currency,
-        tax_rate: parseFloat(store.taxRate) || 7.5,
+        tax_rate: 0,
         min_order_amount: parseFloat(store.minOrderAmount) || 50000,
         free_shipping_threshold: parseFloat(store.freeShippingThreshold) || 500000,
         store_logo: store.storeLogo,
@@ -612,16 +648,7 @@ const Settings = () => {
         <h3 className="text-sm font-bold text-[#2B1A12] mb-4 flex items-center gap-2">
           <FiShield className="text-[#F4A623]" /> Financial Settings
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div>
-            <label className="text-xs font-bold text-gray-500 mb-1.5 block">Tax Rate (%)</label>
-            <input
-              type="number"
-              value={store.taxRate}
-              onChange={(e) => setStore({ ...store, taxRate: e.target.value })}
-              className={inputBase}
-            />
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
             <label className="text-xs font-bold text-gray-500 mb-1.5 block">Min Order Amount (₦)</label>
             <input
@@ -656,6 +683,177 @@ const Settings = () => {
     </div>
   );
 
+  const renderCategories = () => {
+    const handleAdd = async (e) => {
+      e.preventDefault();
+      if (!newCatName.trim()) return;
+      setSaving(true);
+      try {
+        await addCategory(newCatName.trim());
+        setNewCatName("");
+        showToast("Category added successfully!");
+        loadCategories();
+      } catch (err) {
+        console.error("Failed to add category:", err);
+        showToast(err.message || "Failed to add category", "draft");
+      } finally {
+        setSaving(false);
+      }
+    };
+
+    const handleStartEdit = (cat) => {
+      setEditCatId(cat.id);
+      setEditCatName(cat.name);
+    };
+
+    const handleCancelEdit = () => {
+      setEditCatId(null);
+      setEditCatName("");
+    };
+
+    const handleSaveEdit = async (cat) => {
+      if (!editCatName.trim()) return;
+      if (editCatName.trim() === cat.name) {
+        setEditCatId(null);
+        return;
+      }
+      setSaving(true);
+      try {
+        await updateCategory(cat.id, cat.name, editCatName.trim());
+        showToast("Category updated successfully!");
+        setEditCatId(null);
+        setEditCatName("");
+        loadCategories();
+      } catch (err) {
+        console.error("Failed to update category:", err);
+        showToast(err.message || "Failed to update category", "draft");
+      } finally {
+        setSaving(false);
+      }
+    };
+
+    const handleDelete = async (cat) => {
+      if (window.confirm(`Are you sure you want to delete "${cat.name}"? Products using this category will be changed to "Other".`)) {
+        setSaving(true);
+        try {
+          await deleteCategory(cat.id, cat.name);
+          showToast("Category deleted successfully!");
+          loadCategories();
+        } catch (err) {
+          console.error("Failed to delete category:", err);
+          showToast(err.message || "Failed to delete category", "draft");
+        } finally {
+          setSaving(false);
+        }
+      }
+    };
+
+    return (
+      <div className="space-y-8">
+        <div>
+          <h3 className="text-sm font-bold text-[#2B1A12] mb-4 flex items-center gap-2">
+            <FiList className="text-[#F4A623]" /> Product Categories
+          </h3>
+          <p className="text-xs text-gray-400 mb-6">
+            Add, update, or remove product categories. Changes are immediately cascaded to all products.
+          </p>
+
+          {/* Add Category Form */}
+          <form onSubmit={handleAdd} className="flex gap-3 max-w-md mb-8">
+            <input
+              type="text"
+              placeholder="e.g. Lighting, Cushions"
+              value={newCatName}
+              onChange={(e) => setNewCatName(e.target.value)}
+              className={inputBase}
+              disabled={saving}
+            />
+            <button
+              type="submit"
+              disabled={saving || !newCatName.trim()}
+              className={`flex items-center gap-1 px-5 py-2.5 bg-[#F4A623] hover:bg-[#e09520] text-[#2B1A12] rounded-lg text-sm font-bold shadow-md shadow-[#F4A623]/25 transition-all ${
+                saving || !newCatName.trim() ? "opacity-70 cursor-not-allowed" : ""
+              }`}
+            >
+              <FiPlus /> Add
+            </button>
+          </form>
+
+          {/* Categories List */}
+          <div className="max-w-xl border border-gray-100 rounded-xl overflow-hidden bg-gray-50">
+            {categoriesLoading ? (
+              <div className="p-8 text-center text-sm font-medium text-gray-500">
+                Loading categories...
+              </div>
+            ) : categoriesList.length === 0 ? (
+              <div className="p-8 text-center text-sm font-medium text-gray-500">
+                No categories found. Add one above.
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-100 bg-white">
+                {categoriesList.map((cat) => {
+                  const isEditing = editCatId === cat.id;
+                  return (
+                    <div key={cat.id} className="flex items-center justify-between p-4 group transition-colors hover:bg-gray-50">
+                      {isEditing ? (
+                        <div className="flex-1 flex gap-2 mr-4">
+                          <input
+                            type="text"
+                            value={editCatName}
+                            onChange={(e) => setEditCatName(e.target.value)}
+                            className={`${inputBase} py-1.5`}
+                            autoFocus
+                            disabled={saving}
+                          />
+                          <button
+                            onClick={() => handleSaveEdit(cat)}
+                            disabled={saving || !editCatName.trim()}
+                            title="Save Changes"
+                            className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                          >
+                            <FiCheck className="text-base" />
+                          </button>
+                          <button
+                            onClick={handleCancelEdit}
+                            disabled={saving}
+                            title="Cancel"
+                            className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors"
+                          >
+                            <FiX className="text-base" />
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <span className="text-sm font-semibold text-[#2B1A12]">{cat.name}</span>
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => handleStartEdit(cat)}
+                              title="Rename Category"
+                              className="p-2 text-gray-400 hover:text-[#F4A623] hover:bg-[#F4A623]/10 rounded-lg transition-all"
+                            >
+                              <FiEdit2 className="text-sm" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(cat)}
+                              title="Delete Category"
+                              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                            >
+                              <FiTrash2 className="text-sm" />
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // ──────────────────────────────────────────
   // Render active tab
   // ──────────────────────────────────────────
@@ -665,6 +863,7 @@ const Settings = () => {
       case "security": return renderSecurity();
       case "notifications": return renderNotifications();
       case "store": return renderStore();
+      case "categories": return renderCategories();
       default: return renderProfile();
     }
   };

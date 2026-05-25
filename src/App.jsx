@@ -25,6 +25,7 @@ import Customers from "./pages/admin/Customers";
 import Analytics from "./pages/admin/Analytics";
 import Settings from "./pages/admin/Settings";
 import Reviews from "./pages/admin/Reviews";
+import Notifications from "./pages/admin/Notifications";
 import PublicReviews from "./pages/PublicReviews";
 import ScrollToTop from "./components/ScrollToTop";
 import NotFound from "./pages/NotFound";
@@ -71,6 +72,7 @@ function App() {
               <Route path="analytics" element={<Analytics />} />
               <Route path="settings"  element={<Settings />} />
               <Route path="reviews"   element={<Reviews />} />
+              <Route path="notifications" element={<Notifications />} />
             </Route>
 
             {/* ── 404 ──────────────────────────────────────────────── */}
