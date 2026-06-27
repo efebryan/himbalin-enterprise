@@ -26,6 +26,9 @@ import Analytics from "./pages/admin/Analytics";
 import Settings from "./pages/admin/Settings";
 import Reviews from "./pages/admin/Reviews";
 import Notifications from "./pages/admin/Notifications";
+import Shipments from "./pages/admin/Shipments";
+import Invoices from "./pages/admin/Invoices";
+import TrackOrder from "./pages/TrackOrder";
 import PublicReviews from "./pages/PublicReviews";
 import ScrollToTop from "./components/ScrollToTop";
 import NotFound from "./pages/NotFound";
@@ -52,6 +55,7 @@ function App() {
             <Route path="/checkout"         element={<Checkout />} />
             <Route path="/payment-success"  element={<PaymentSuccess />} />
             <Route path="/reviews"          element={<PublicReviews />} />
+            <Route path="/track-order"      element={<TrackOrder />} />
 
             {/* ── Admin login (public) ─────────────────────────────── */}
             <Route path="/adminlogin/login" element={<AdminLogin />} />
@@ -72,6 +76,8 @@ function App() {
               <Route path="analytics" element={<Analytics />} />
               <Route path="settings"  element={<Settings />} />
               <Route path="reviews"   element={<Reviews />} />
+              <Route path="shipment"  element={<Shipments />} />
+              <Route path="invoice"   element={<Invoices />} />
               <Route path="notifications" element={<Notifications />} />
             </Route>
 

@@ -8,6 +8,8 @@ import {
   MdAnalytics,
   MdSettings,
   MdRateReview,
+  MdLocalShipping,
+  MdReceipt,
 } from "react-icons/md";
 import { RiCloseLine } from "react-icons/ri";
 import { useSiteSettings } from "../../context/SiteSettingsContext";
@@ -28,6 +30,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     { name: "Products", path: "/admin/products", icon: <MdInventory className="text-xl" /> },
     { name: "Customers", path: "/admin/customers", icon: <MdPeople className="text-xl" /> },
     { name: "Reviews", path: "/admin/reviews", icon: <MdRateReview className="text-xl" /> },
+    { name: "Shipment", path: "/admin/shipment", icon: <MdLocalShipping className="text-xl" /> },
+    { name: "Invoice", path: "/admin/invoice", icon: <MdReceipt className="text-xl" /> },
     { name: "Analytics", path: "/admin/analytics", icon: <MdAnalytics className="text-xl" /> },
     { name: "Settings", path: "/admin/settings", icon: <MdSettings className="text-xl" /> },
   ];
