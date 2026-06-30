@@ -12,7 +12,7 @@ const ProductsTable = ({ products, loading, fetchProducts }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editProduct, setEditProduct] = useState(null);
   const [viewProduct, setViewProduct] = useState(null);
-  const [deleteProduct, setDeleteProduct] = useState(null);
+  const [productToDelete, setProductToDelete] = useState(null);
   const [toast, setToast] = useState({ visible: false, message: "", type: "success" });
 
   // Filters
@@ -135,7 +135,7 @@ const ProductsTable = ({ products, loading, fetchProducts }) => {
   };
 
   const handleDeleteClick = (product) => {
-    setDeleteProduct(product);
+    setProductToDelete(product);
   };
 
   const handleDeleteConfirm = async (productId) => {
@@ -145,9 +145,10 @@ const ProductsTable = ({ products, loading, fetchProducts }) => {
       fetchProducts();
     } catch (error) {
       console.error("Error deleting product:", error);
-      setToast({ visible: true, message: "Failed to delete product.", type: "error" });
+      const errorMsg = error?.message || error?.details || error?.hint || "Failed to delete product.";
+      setToast({ visible: true, message: `Error: ${errorMsg}`, type: "error" });
     }
-    setDeleteProduct(null);
+    setProductToDelete(null);
   };
 
   const clearFilters = () => {
@@ -393,9 +394,9 @@ const ProductsTable = ({ products, loading, fetchProducts }) => {
 
       {/* Delete Confirmation Modal */}
       <DeleteConfirmModal
-        product={deleteProduct}
-        isOpen={!!deleteProduct}
-        onCancel={() => setDeleteProduct(null)}
+        product={productToDelete}
+        isOpen={!!productToDelete}
+        onCancel={() => setProductToDelete(null)}
         onConfirm={handleDeleteConfirm}
       />
 
