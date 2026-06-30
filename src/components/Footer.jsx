@@ -6,8 +6,10 @@ const Footer = () => {
   const { settings } = useSiteSettings();
 
   const storeName = settings?.store_name || "Himbalin Enterprise";
-  const storeEmail = settings?.store_email || "info@himbalin.com";
-  const storeAddress = settings?.store_address || "14 Admiralty Way, Lekki Phase 1, Lagos, Nigeria";
+  const storeEmail = settings?.store_email || "[EMAIL_ADDRESS]";
+  const storeAddress =
+    settings?.store_address ||
+    "14 Admiralty Way, Lekki Phase 1, Lagos, Nigeria";
 
   return (
     <footer className="bg-[#1A100B] text-himbalin-beige pt-20 pb-8 px-8 border-t border-himbalin-beige/10">
@@ -17,7 +19,11 @@ const Footer = () => {
           <div className="lg:pr-8">
             <div className="mb-6">
               {settings?.store_logo ? (
-                <img src={settings.store_logo} alt="Logo" className="h-8 sm:h-10 w-auto max-w-full object-contain" />
+                <img
+                  src={settings.store_logo}
+                  alt="Logo"
+                  className="h-8 sm:h-10 w-auto max-w-full object-contain"
+                />
               ) : (
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded bg-himbalin-gold flex items-center justify-center shrink-0">
@@ -178,8 +184,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-himbalin-beige/10 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="font-sans text-xs text-himbalin-beige/50">
-            &copy; {new Date().getFullYear()} {storeName}. All rights
-            reserved.
+            &copy; {new Date().getFullYear()} {storeName}. All rights reserved.
           </p>
           <div className="flex gap-6 font-sans text-xs text-himbalin-beige/70">
             <a href="#" className="hover:text-himbalin-gold transition-colors">

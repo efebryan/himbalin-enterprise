@@ -67,7 +67,8 @@ const ContactFormSection = () => {
                     Message Sent!
                   </h3>
                   <p className="font-sans text-himbalin-dark/60 leading-relaxed max-w-sm">
-                    Thank you for reaching out. Our team will get back to you within 24 hours.
+                    Thank you for reaching out. Our team will get back to you
+                    within 24 hours.
                   </p>
                   <button
                     onClick={() => setSubmitted(false)}
@@ -77,7 +78,11 @@ const ContactFormSection = () => {
                   </button>
                 </motion.div>
               ) : (
-                <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <motion.div
+                  key="form"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
                   <h2 className="font-serif text-3xl font-bold text-himbalin-dark mb-10">
                     Send us a Message
                   </h2>
@@ -143,13 +148,15 @@ const ContactFormSection = () => {
                     </div>
 
                     {error && (
-                      <p className="text-red-500 text-sm font-medium">{error}</p>
+                      <p className="text-red-500 text-sm font-medium">
+                        {error}
+                      </p>
                     )}
 
                     <button
                       type="submit"
                       disabled={submitting}
-                      className={`bg-himbalin-gold text-himbalin-dark px-10 py-4 rounded-xl font-bold text-sm hover:bg-yellow-500 transition-colors shadow-soft hover:shadow-hover mt-4 uppercase tracking-widest ${submitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                      className={`bg-himbalin-gold text-himbalin-dark px-10 py-4 rounded-xl font-bold text-sm hover:bg-yellow-500 transition-colors shadow-soft hover:shadow-hover mt-4 uppercase tracking-widest ${submitting ? "opacity-70 cursor-not-allowed" : ""}`}
                     >
                       {submitting ? "Sending..." : "Submit Inquiry"}
                     </button>
@@ -172,13 +179,13 @@ const ContactFormSection = () => {
                 </div>
                 <div>
                   <h4 className="font-sans font-bold text-himbalin-dark mb-1">
-                    Bespoke Consulting
+                    Book a Consultation
                   </h4>
                   <p className="font-sans text-sm text-himbalin-dark/60">
-                    {settings?.store_email || "info@himbalin.com"}
+                    {settings?.store_email || "[EMAIL_ADDRESS]"}
                   </p>
                   <p className="font-sans text-sm text-himbalin-dark/60 mt-1">
-                    {settings?.store_phone || "+234 700 000 0001"}
+                    {settings?.store_phone || "+234 803 885 6167"}
                   </p>
                 </div>
               </div>
@@ -214,12 +221,12 @@ const ContactFormSection = () => {
               <div className="space-y-6">
                 <div>
                   <h5 className="font-sans font-black text-himbalin-dark text-[10px] uppercase tracking-[0.2em] mb-3">
-                    Lagos, Nigeria
+                    Onitsha, Nigeria
                   </h5>
                   <p className="font-sans text-sm text-himbalin-dark/80 leading-relaxed">
-                    12 Victoria Island Crescent,
+                    46 New Market Rd,
                     <br />
-                    Lagos State, Nigeria
+                    City centre, Onitsha
                   </p>
                   <p className="font-sans text-[11px] text-himbalin-dark/50 mt-2 font-bold uppercase">
                     Mon - Sat: 9am - 6pm
@@ -228,12 +235,12 @@ const ContactFormSection = () => {
 
                 <div>
                   <h5 className="font-sans font-black text-himbalin-dark text-[10px] uppercase tracking-[0.2em] mb-3">
-                    Istanbul, Turkey
+                    Onitsha, Nigeria
                   </h5>
                   <p className="font-sans text-sm text-himbalin-dark/80 leading-relaxed">
-                    Levent Loft, Büyükdere Cd. No:201,
+                    55 New Market Rd,
                     <br />
-                    34394 Şişli/İstanbul
+                    City centre, Onitsha
                   </p>
                   <p className="font-sans text-[11px] text-himbalin-dark/50 mt-2 font-bold uppercase">
                     Mon - Fri: 10am - 7pm

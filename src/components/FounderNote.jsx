@@ -34,10 +34,10 @@ const FounderNote = () => {
 
           <div>
             <h4 className="font-sans font-bold text-lg text-himbalin-dark tracing-wide">
-              Elias Himbalin
+              Illione Anthony Ekene
             </h4>
             <p className="font-sans text-himbalin-gold font-semibold text-sm tracking-wider uppercase mt-1">
-              Founder & Creative Director
+              Chief Executive Officer (CEO)
             </p>
           </div>
         </div>
