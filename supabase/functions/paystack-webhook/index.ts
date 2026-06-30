@@ -55,13 +55,12 @@ serve(async (req: Request) => {
       const status = 'Paid'
 
       // Update order status in database
-      const { error } = await supabaseClient
+      const { data: orderData, error } = await supabaseClient
         .from('orders')
         .update({ status })
-        .eq('paystack_reference', reference) // or .eq('id', reference) since we used order.id as reference
-        // Actually we used order.id as reference initially, then paystack returned its own, 
-        // or we used order.id. Paystack allows us to pass reference. 
-        // We passed order.id as reference. So we can update by id OR paystack_reference.
+        .eq('paystack_reference', reference) // or .eq('id', reference)
+        .select()
+        .single()
 
       if (error) {
         console.error('Error updating order:', error)
@@ -69,6 +68,34 @@ serve(async (req: Request) => {
       }
 
       console.log(`Successfully processed payment for order reference: ${reference}`)
+
+      // Send Order Confirmation Email
+      if (orderData && orderData.customer_email) {
+        try {
+          const htmlContent = `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+              <h2 style="color: #2B1A12;">Order Confirmation</h2>
+              <p>Hello ${orderData.customer_name || 'Valued Customer'},</p>
+              <p>Thank you for your purchase! We have successfully received your payment for order <strong>#${orderData.id.substring(0,8).toUpperCase()}</strong>.</p>
+              <p><strong>Total Amount:</strong> ₦${orderData.total.toLocaleString()}</p>
+              <p>We are now processing your order and will notify you once it ships.</p>
+              <br/>
+              <p>Best regards,<br/>Himbalin Enterprise</p>
+            </div>
+          `;
+
+          await supabaseClient.functions.invoke('send-email', {
+            body: {
+              to: orderData.customer_email,
+              subject: `Order Confirmation - #${orderData.id.substring(0,8).toUpperCase()}`,
+              html: htmlContent
+            }
+          })
+          console.log(`Order confirmation email sent to ${orderData.customer_email}`);
+        } catch (emailError) {
+          console.error('Failed to send order confirmation email:', emailError);
+        }
+      }
     }
 
     return new Response('OK', { status: 200 })

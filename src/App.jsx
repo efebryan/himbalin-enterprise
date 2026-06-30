@@ -28,6 +28,7 @@ import Reviews from "./pages/admin/Reviews";
 import Notifications from "./pages/admin/Notifications";
 import Shipments from "./pages/admin/Shipments";
 import Invoices from "./pages/admin/Invoices";
+import EmailClients from "./pages/admin/EmailClients";
 import TrackOrder from "./pages/TrackOrder";
 import PublicReviews from "./pages/PublicReviews";
 import ScrollToTop from "./components/ScrollToTop";
@@ -78,6 +79,7 @@ function App() {
               <Route path="reviews"   element={<Reviews />} />
               <Route path="shipment"  element={<Shipments />} />
               <Route path="invoice"   element={<Invoices />} />
+              <Route path="email"     element={<EmailClients />} />
               <Route path="notifications" element={<Notifications />} />
             </Route>
 

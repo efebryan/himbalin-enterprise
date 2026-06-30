@@ -55,26 +55,34 @@ const InvoiceModal = ({ invoice, onClose, settings }) => {
       <html>
         <head>
           <title>Invoice ${invoice.invoiceNumber}</title>
+          <script src="https://cdn.tailwindcss.com"></script>
           <style>
             @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap');
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { font-family: 'Inter', sans-serif; color: #2B1A12; background: #fff; }
+            body { 
+              font-family: 'Inter', sans-serif; 
+              color: #2B1A12; 
+              background: #fff; 
+              -webkit-print-color-adjust: exact; 
+              print-color-adjust: exact; 
+            }
             .invoice-wrap { max-width: 800px; margin: 0 auto; padding: 40px; }
-            h1, h2, h3 { font-family: 'Playfair Display', serif; }
-            table { width: 100%; border-collapse: collapse; }
-            th { background: #2B1A12; color: #F5F1EC; padding: 10px 14px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
-            td { padding: 10px 14px; font-size: 13px; border-bottom: 1px solid #f0ede9; }
-            .gold { color: #F4A623; }
-            .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+            h1, h2, h3, .font-serif { font-family: 'Playfair Display', serif !important; }
           </style>
         </head>
-        <body><div class="invoice-wrap">${content}</div></body>
+        <body>
+          <div class="invoice-wrap">${content}</div>
+          <script>
+            // Wait for Tailwind to process the classes before printing
+            setTimeout(() => {
+              window.print();
+              window.close();
+            }, 800);
+          </script>
+        </body>
       </html>
     `);
     win.document.close();
-    win.focus();
-    win.print();
-    win.close();
   };
 
   const subtotal = invoice.items.reduce((s, i) => s + (i.price || 0) * (i.quantity || i.qty || 1), 0);

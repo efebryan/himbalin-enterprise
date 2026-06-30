@@ -10,6 +10,7 @@ import {
   MdRateReview,
   MdLocalShipping,
   MdReceipt,
+  MdEmail,
 } from "react-icons/md";
 import { RiCloseLine } from "react-icons/ri";
 import { useSiteSettings } from "../../context/SiteSettingsContext";
@@ -32,6 +33,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     { name: "Reviews", path: "/admin/reviews", icon: <MdRateReview className="text-xl" /> },
     { name: "Shipment", path: "/admin/shipment", icon: <MdLocalShipping className="text-xl" /> },
     { name: "Invoice", path: "/admin/invoice", icon: <MdReceipt className="text-xl" /> },
+    { name: "Email Clients", path: "/admin/email", icon: <MdEmail className="text-xl" /> },
     { name: "Analytics", path: "/admin/analytics", icon: <MdAnalytics className="text-xl" /> },
     { name: "Settings", path: "/admin/settings", icon: <MdSettings className="text-xl" /> },
   ];

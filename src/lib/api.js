@@ -145,6 +145,35 @@ export async function updateOrderStatus(id, status) {
     .select()
     .single()
   if (error) throw error
+
+  // If status is Shipped or Delivered, send an email to the customer
+  if (status === 'Shipped' || status === 'Delivered') {
+    if (data && data.customer_email) {
+      const isShipped = status === 'Shipped';
+      const subject = isShipped ? `Your Order #${data.id.substring(0,8).toUpperCase()} has Shipped!` : `Your Order #${data.id.substring(0,8).toUpperCase()} has been Delivered!`;
+      
+      const htmlContent = `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+          <h2 style="color: #2B1A12;">Order Update: ${status}</h2>
+          <p>Hello ${data.customer_name || 'Valued Customer'},</p>
+          <p>We wanted to let you know that your order <strong>#${data.id.substring(0,8).toUpperCase()}</strong> has been <strong>${status.toLowerCase()}</strong>.</p>
+          ${isShipped ? '<p>Your items are on the way. You can track your shipment using the tracking number on your invoice.</p>' : '<p>We hope you enjoy your purchase! Thank you for shopping with Himbalin Enterprise.</p>'}
+          <br/>
+          <p>Best regards,<br/>Himbalin Enterprise</p>
+        </div>
+      `;
+
+      // We do not await this so it doesn't block the UI update
+      supabase.functions.invoke('send-email', {
+        body: {
+          to: data.customer_email,
+          subject,
+          html: htmlContent
+        }
+      }).catch(err => console.error("Failed to trigger email notification:", err));
+    }
+  }
+
   return data
 }
 
