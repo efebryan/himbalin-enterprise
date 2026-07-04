@@ -493,8 +493,8 @@ const ProductListRow = ({ product }) => {
         </div>
 
         {/* Price & Actions Area */}
-        <div className="flex md:flex-col items-center md:items-end justify-between md:justify-start gap-3 shrink-0 w-full md:w-auto pt-3 md:pt-0 border-t md:border-t-0 border-gray-100">
-          <div className="flex flex-col justify-center h-9 md:h-auto">
+        <div className="flex flex-col items-start sm:items-end justify-start gap-2 shrink-0 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100">
+          <div>
             <p className="font-serif text-lg sm:text-xl font-black text-himbalin-dark whitespace-nowrap leading-tight">
               {formatPrice(product.price)}
               {product.priceUnit && (
@@ -504,7 +504,7 @@ const ProductListRow = ({ product }) => {
               )}
             </p>
             {product.oldPrice && (
-              <p className="font-sans text-xs text-gray-300 line-through text-left md:text-right">
+              <p className="font-sans text-xs text-gray-300 line-through text-left sm:text-right">
                 {formatPrice(product.oldPrice)}
               </p>
             )}
