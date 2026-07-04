@@ -518,7 +518,7 @@ const ProductListRow = ({ product }) => {
             </div>
             <button
               onClick={handleAdd}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap shrink-0 ${
                 inCart
                   ? "bg-green-500 text-white cursor-default"
                   : "bg-himbalin-gold text-himbalin-dark hover:bg-yellow-500"
