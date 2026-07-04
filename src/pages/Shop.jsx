@@ -456,62 +456,71 @@ const ProductListRow = ({ product }) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-soft flex flex-col sm:flex-row gap-5 items-start sm:items-center group hover:shadow-hover transition-all duration-300">
+    <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-100 shadow-soft flex gap-4 sm:gap-5 items-start sm:items-center group hover:shadow-hover transition-all duration-300">
       <img
         src={product.image}
         alt={product.name}
-        className="w-full sm:w-24 h-48 sm:h-24 object-cover rounded-xl shrink-0 group-hover:scale-105 transition-transform duration-500"
+        className="w-20 h-20 sm:w-28 sm:h-28 object-cover rounded-xl shrink-0 group-hover:scale-105 transition-transform duration-500"
       />
-      <div className="flex-grow min-w-0 w-full">
-        <div className="flex items-center gap-2 mb-1">
-          <FiStar className="text-himbalin-gold fill-himbalin-gold" size={12} />
-          <span className="font-sans text-xs font-bold text-himbalin-dark">
-            {product.rating}
-          </span>
-          <span className="font-sans text-xs text-gray-400">
-            ({product.reviews})
-          </span>
-          {product.badge && (
-            <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-himbalin-dark text-himbalin-gold">
-              {product.badge}
-            </span>
-          )}
-        </div>
-        <h3 className="font-serif text-lg font-bold text-himbalin-dark truncate group-hover:text-himbalin-gold transition-colors">
-          {product.name}
-        </h3>
-        <p className="font-sans text-xs text-gray-400 mb-2 line-clamp-2 sm:line-clamp-none">{product.description}</p>
-        <span className="font-sans text-[10px] uppercase tracking-widest text-himbalin-dark/40 font-bold">
-          {product.category}
-        </span>
-      </div>
-      <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 shrink-0 w-full sm:w-auto pt-4 sm:pt-0 border-t sm:border-t-0 border-gray-100">
-        <div>
-          <p className="font-serif text-xl font-black text-himbalin-dark">
-            {formatPrice(product.price)}
-            {product.priceUnit && (
-              <span className="text-[11px] text-gray-400 font-medium ml-1">
-                / {product.priceUnit}
+      <div className="flex-grow min-w-0 flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
+        {/* Info Area */}
+        <div className="min-w-0 flex-grow">
+          <div className="flex flex-wrap items-center gap-2 mb-1">
+            <div className="flex items-center gap-1">
+              <FiStar className="text-himbalin-gold fill-himbalin-gold" size={12} />
+              <span className="font-sans text-xs font-bold text-himbalin-dark">
+                {product.rating}
+              </span>
+              <span className="font-sans text-xs text-gray-400">
+                ({product.reviews})
+              </span>
+            </div>
+            {product.badge && (
+              <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-himbalin-dark text-himbalin-gold">
+                {product.badge}
               </span>
             )}
+          </div>
+          <h3 className="font-serif text-base sm:text-lg font-bold text-himbalin-dark truncate group-hover:text-himbalin-gold transition-colors">
+            {product.name}
+          </h3>
+          <p className="font-sans text-xs text-gray-400 mb-2 line-clamp-2 md:line-clamp-none">
+            {product.description}
           </p>
-          {product.oldPrice && (
-            <p className="font-sans text-xs text-gray-300 line-through text-right">
-              {formatPrice(product.oldPrice)}
-            </p>
-          )}
+          <span className="font-sans text-[10px] uppercase tracking-widest text-himbalin-dark/40 font-bold">
+            {product.category}
+          </span>
         </div>
-        <button
-          onClick={handleAdd}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all ${
-            inCart
-              ? "bg-green-500 text-white cursor-default"
-              : "bg-himbalin-gold text-himbalin-dark hover:bg-yellow-500"
-          }`}
-        >
-          {inCart ? <FiCheck size={13} /> : <FiShoppingCart size={13} />}
-          {inCart ? "In Cart" : "Add to Cart"}
-        </button>
+
+        {/* Price & Actions Area */}
+        <div className="flex md:flex-col items-center md:items-end justify-between md:justify-start gap-3 shrink-0 w-full md:w-auto pt-3 md:pt-0 border-t md:border-t-0 border-gray-100">
+          <div>
+            <p className="font-serif text-lg sm:text-xl font-black text-himbalin-dark whitespace-nowrap">
+              {formatPrice(product.price)}
+              {product.priceUnit && (
+                <span className="text-[11px] text-gray-400 font-medium ml-1">
+                  / {product.priceUnit}
+                </span>
+              )}
+            </p>
+            {product.oldPrice && (
+              <p className="font-sans text-xs text-gray-300 line-through text-left md:text-right">
+                {formatPrice(product.oldPrice)}
+              </p>
+            )}
+          </div>
+          <button
+            onClick={handleAdd}
+            className={`flex items-center gap-2 px-3.5 py-2 sm:px-4 sm:py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap ${
+              inCart
+                ? "bg-green-500 text-white cursor-default"
+                : "bg-himbalin-gold text-himbalin-dark hover:bg-yellow-500"
+            }`}
+          >
+            {inCart ? <FiCheck size={13} /> : <FiShoppingCart size={13} />}
+            {inCart ? "In Cart" : "Add to Cart"}
+          </button>
+        </div>
       </div>
     </div>
   );
