@@ -462,7 +462,7 @@ const ProductListRow = ({ product }) => {
         alt={product.name}
         className="w-20 h-20 sm:w-28 sm:h-28 object-cover rounded-xl shrink-0 group-hover:scale-105 transition-transform duration-500"
       />
-      <div className="flex-grow min-w-0 flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
+      <div className="flex-grow min-w-0 flex flex-col md:flex-row md:items-center justify-between gap-4">
         {/* Info Area */}
         <div className="min-w-0 flex-grow">
           <div className="flex flex-wrap items-center gap-2 mb-1">
