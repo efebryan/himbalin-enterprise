@@ -456,13 +456,13 @@ const ProductListRow = ({ product }) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-soft flex gap-5 items-center group hover:shadow-hover transition-all duration-300">
+    <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-soft flex flex-col sm:flex-row gap-5 items-start sm:items-center group hover:shadow-hover transition-all duration-300">
       <img
         src={product.image}
         alt={product.name}
-        className="w-24 h-24 object-cover rounded-xl shrink-0 group-hover:scale-105 transition-transform duration-500"
+        className="w-full sm:w-24 h-48 sm:h-24 object-cover rounded-xl shrink-0 group-hover:scale-105 transition-transform duration-500"
       />
-      <div className="flex-grow min-w-0">
+      <div className="flex-grow min-w-0 w-full">
         <div className="flex items-center gap-2 mb-1">
           <FiStar className="text-himbalin-gold fill-himbalin-gold" size={12} />
           <span className="font-sans text-xs font-bold text-himbalin-dark">
@@ -480,12 +480,12 @@ const ProductListRow = ({ product }) => {
         <h3 className="font-serif text-lg font-bold text-himbalin-dark truncate group-hover:text-himbalin-gold transition-colors">
           {product.name}
         </h3>
-        <p className="font-sans text-xs text-gray-400 mb-2">{product.description}</p>
+        <p className="font-sans text-xs text-gray-400 mb-2 line-clamp-2 sm:line-clamp-none">{product.description}</p>
         <span className="font-sans text-[10px] uppercase tracking-widest text-himbalin-dark/40 font-bold">
           {product.category}
         </span>
       </div>
-      <div className="flex flex-col items-end gap-3 shrink-0">
+      <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 shrink-0 w-full sm:w-auto pt-4 sm:pt-0 border-t sm:border-t-0 border-gray-100">
         <div>
           <p className="font-serif text-xl font-black text-himbalin-dark">
             {formatPrice(product.price)}
