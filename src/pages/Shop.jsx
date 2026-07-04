@@ -446,6 +446,7 @@ import { useState as useLocalState } from "react";
 const ProductListRow = ({ product }) => {
   const { addToCart, isInCart } = useCart();
   const [toast, setToast] = useLocalState(false);
+  const [showModal, setShowModal] = useLocalState(false);
   const inCart = isInCart(product.id);
 
   const handleAdd = () => {
@@ -456,73 +457,237 @@ const ProductListRow = ({ product }) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl p-3 sm:p-5 border border-gray-100 shadow-soft flex gap-3 sm:gap-5 items-start sm:items-center group hover:shadow-hover transition-all duration-300">
-      <img
-        src={product.image}
-        alt={product.name}
-        className="w-16 h-16 sm:w-28 sm:h-28 object-cover rounded-xl shrink-0 group-hover:scale-105 transition-transform duration-500"
-      />
-      <div className="flex-grow min-w-0 flex flex-col md:flex-row md:items-center justify-between gap-3">
-        {/* Info Area */}
-        <div className="min-w-0 flex-grow">
-          <div className="flex flex-wrap items-center gap-2 mb-1">
-            <div className="flex items-center gap-1">
-              <FiStar className="text-himbalin-gold fill-himbalin-gold" size={12} />
-              <span className="font-sans text-xs font-bold text-himbalin-dark">
-                {product.rating}
-              </span>
-              <span className="font-sans text-xs text-gray-400">
-                ({product.reviews})
-              </span>
-            </div>
-            {product.badge && (
-              <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-himbalin-dark text-himbalin-gold">
-                {product.badge}
-              </span>
-            )}
-          </div>
-          <h3 className="font-serif text-sm sm:text-lg font-bold text-himbalin-dark truncate group-hover:text-himbalin-gold transition-colors">
-            {product.name}
-          </h3>
-          <p className="font-sans text-[11px] sm:text-xs text-gray-400 mb-1.5 line-clamp-1 sm:line-clamp-none">
-            {product.description}
-          </p>
-          <span className="font-sans text-[9px] sm:text-[10px] uppercase tracking-widest text-himbalin-dark/40 font-bold">
-            {product.category}
-          </span>
-        </div>
-
-        {/* Price & Actions Area */}
-        <div className="flex md:flex-col items-center md:items-end justify-between md:justify-start gap-2 shrink-0 w-full md:w-auto pt-2.5 md:pt-0 border-t md:border-t-0 border-gray-100">
-          <div>
-            <p className="font-serif text-sm sm:text-xl font-black text-himbalin-dark whitespace-nowrap leading-tight">
-              {formatPrice(product.price)}
-              {product.priceUnit && (
-                <span className="text-[10px] sm:text-[11px] text-gray-400 font-medium ml-0.5">
-                  / {product.priceUnit}
+    <>
+      <div className="bg-white rounded-2xl p-3 sm:p-5 border border-gray-100 shadow-soft flex gap-3 sm:gap-5 items-start sm:items-center group hover:shadow-hover transition-all duration-300">
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-16 h-16 sm:w-28 sm:h-28 object-cover rounded-xl shrink-0 group-hover:scale-105 transition-transform duration-500 cursor-pointer"
+          onClick={() => setShowModal(true)}
+        />
+        <div className="flex-grow min-w-0 flex flex-col md:flex-row md:items-center justify-between gap-3">
+          {/* Info Area */}
+          <div className="min-w-0 flex-grow">
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <div className="flex items-center gap-1">
+                <FiStar className="text-himbalin-gold fill-himbalin-gold" size={12} />
+                <span className="font-sans text-xs font-bold text-himbalin-dark">
+                  {product.rating}
+                </span>
+                <span className="font-sans text-xs text-gray-400">
+                  ({product.reviews})
+                </span>
+              </div>
+              {product.badge && (
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-himbalin-dark text-himbalin-gold">
+                  {product.badge}
                 </span>
               )}
+            </div>
+            <h3 
+              onClick={() => setShowModal(true)}
+              className="font-serif text-sm sm:text-lg font-bold text-himbalin-dark truncate group-hover:text-himbalin-gold transition-colors cursor-pointer hover:underline"
+              title="Click to view details"
+            >
+              {product.name}
+            </h3>
+            <p className="font-sans text-[11px] sm:text-xs text-gray-400 mb-1.5 line-clamp-1 sm:line-clamp-none">
+              {product.description}
             </p>
-            {product.oldPrice && (
-              <p className="font-sans text-[11px] text-gray-300 line-through text-left md:text-right">
-                {formatPrice(product.oldPrice)}
-              </p>
-            )}
+            <span className="font-sans text-[9px] sm:text-[10px] uppercase tracking-widest text-himbalin-dark/40 font-bold">
+              {product.category}
+            </span>
           </div>
-          <button
-            onClick={handleAdd}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${
-              inCart
-                ? "bg-green-500 text-white cursor-default"
-                : "bg-himbalin-gold text-himbalin-dark hover:bg-yellow-500"
-            }`}
-          >
-            {inCart ? <FiCheck size={12} /> : <FiShoppingCart size={12} />}
-            {inCart ? "In Cart" : "Add to Cart"}
-          </button>
+
+          {/* Price & Actions Area */}
+          <div className="flex md:flex-col items-center md:items-end justify-between md:justify-start gap-2 shrink-0 w-full md:w-auto pt-2.5 md:pt-0 border-t md:border-t-0 border-gray-100">
+            <div>
+              <p className="font-serif text-sm sm:text-xl font-black text-himbalin-dark whitespace-nowrap leading-tight">
+                {formatPrice(product.price)}
+                {product.priceUnit && (
+                  <span className="text-[10px] sm:text-[11px] text-gray-400 font-medium ml-0.5">
+                    / {product.priceUnit}
+                  </span>
+                )}
+              </p>
+              {product.oldPrice && (
+                <p className="font-sans text-[11px] text-gray-300 line-through text-left md:text-right">
+                  {formatPrice(product.oldPrice)}
+                </p>
+              )}
+            </div>
+            <button
+              onClick={handleAdd}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${
+                inCart
+                  ? "bg-green-500 text-white cursor-default"
+                  : "bg-himbalin-gold text-himbalin-dark hover:bg-yellow-500"
+              }`}
+            >
+              {inCart ? <FiCheck size={12} /> : <FiShoppingCart size={12} />}
+              {inCart ? "In Cart" : "Add to Cart"}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Product Details Modal */}
+      <AnimatePresence>
+        {showModal && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowModal(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] transition-opacity"
+            />
+
+            {/* Modal Container */}
+            <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 md:p-8 pointer-events-none">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-hidden pointer-events-auto flex flex-col border border-gray-100"
+              >
+                {/* Modal Header/Image */}
+                <div className="relative h-64 bg-gray-50 shrink-0">
+                  <img
+                    src={product.image || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800"}
+                    alt={product.name || "Product"}
+                    className="w-full h-full object-cover"
+                  />
+                  {product.badge && (
+                    <div className="absolute top-4 left-4">
+                      <span
+                        className={`px-4 py-1.5 rounded-full font-sans text-[10px] font-black tracking-[0.1em] uppercase ${
+                          product.badge.toString().includes("SALE")
+                            ? "bg-red-500 text-white"
+                            : product.badge.toString().includes("NEW")
+                            ? "bg-himbalin-gold text-himbalin-dark"
+                            : "bg-himbalin-dark text-white"
+                        }`}
+                      >
+                        {product.badge}
+                      </span>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-sm transition-all focus:outline-none"
+                  >
+                    <FiX size={20} />
+                  </button>
+                </div>
+
+                {/* Modal Body */}
+                <div className="p-6 md:p-8 overflow-y-auto space-y-4 flex-1">
+                  {/* Rating & Stock */}
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-1.5">
+                      <FiStar className="text-himbalin-gold fill-himbalin-gold" size={16} />
+                      <span className="font-sans text-sm font-bold text-himbalin-dark">
+                        {product.rating ?? 0}
+                      </span>
+                      <span className="font-sans text-sm text-gray-400">
+                        ({product.reviews ?? 0} reviews)
+                      </span>
+                    </div>
+
+                    <div>
+                      {product.stock !== undefined && product.stock > 0 ? (
+                        <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
+                          {product.stock} IN STOCK
+                        </span>
+                      ) : product.stock === 0 ? (
+                        <span className="text-xs font-bold text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-100">
+                          OUT OF STOCK
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  {/* Title */}
+                  <h2 className="font-serif text-2xl font-bold text-[#2B1A12]">
+                    {product.name || "Untitled Product"}
+                  </h2>
+
+                  {/* Divider */}
+                  <div className="w-16 h-1 bg-[#F4A623] rounded-full" />
+
+                  {/* Description */}
+                  <div className="space-y-2">
+                    <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      Narration
+                    </h4>
+                    <p className="font-sans text-sm text-gray-600 leading-relaxed whitespace-pre-line font-light">
+                      {product.description || "No description available."}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Modal Footer */}
+                <div className="border-t border-gray-100 p-6 flex items-center justify-between shrink-0 bg-gray-50/50">
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <span className="font-serif text-2xl font-black text-himbalin-dark">
+                      {formatPrice(product.price)}
+                    </span>
+                    {product.priceUnit && (
+                      <span className="text-sm text-gray-500 font-medium">
+                        / {product.priceUnit}
+                      </span>
+                    )}
+                    {product.oldPrice && (
+                      <span className="font-sans text-sm text-gray-300 line-through">
+                        {formatPrice(product.oldPrice)}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setShowModal(false)}
+                      className="px-5 py-2.5 rounded-full border border-gray-200 hover:bg-white text-xs font-bold text-gray-500 hover:text-himbalin-dark transition-all focus:outline-none"
+                    >
+                      Close
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleAdd();
+                      }}
+                      disabled={product.stock === 0}
+                      className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-bold shadow-md transition-all ${
+                        inCart
+                          ? "bg-green-500 text-white cursor-default"
+                          : product.stock === 0
+                          ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+                          : "bg-himbalin-gold text-himbalin-dark hover:bg-orange-500 hover:text-white"
+                      }`}
+                    >
+                      {inCart ? (
+                        <>
+                          <FiCheck size={14} />
+                          <span>In Cart</span>
+                        </>
+                      ) : product.stock === 0 ? (
+                        <span>Out of Stock</span>
+                      ) : (
+                        <>
+                          <FiShoppingCart size={14} />
+                          <span>Add to Cart</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 
