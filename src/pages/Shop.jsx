@@ -494,8 +494,8 @@ const ProductListRow = ({ product }) => {
 
         {/* Price & Actions Area */}
         <div className="flex md:flex-col items-center md:items-end justify-between md:justify-start gap-3 shrink-0 w-full md:w-auto pt-3 md:pt-0 border-t md:border-t-0 border-gray-100">
-          <div>
-            <p className="font-serif text-lg sm:text-xl font-black text-himbalin-dark whitespace-nowrap">
+          <div className="flex flex-col justify-center h-9 md:h-auto">
+            <p className="font-serif text-lg sm:text-xl font-black text-himbalin-dark whitespace-nowrap leading-tight">
               {formatPrice(product.price)}
               {product.priceUnit && (
                 <span className="text-[11px] text-gray-400 font-medium ml-1">
