@@ -456,13 +456,13 @@ const ProductListRow = ({ product }) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-100 shadow-soft flex gap-4 sm:gap-5 items-start sm:items-center group hover:shadow-hover transition-all duration-300">
+    <div className="bg-white rounded-2xl p-3 sm:p-5 border border-gray-100 shadow-soft flex gap-3 sm:gap-5 items-start sm:items-center group hover:shadow-hover transition-all duration-300">
       <img
         src={product.image}
         alt={product.name}
-        className="w-20 h-20 sm:w-28 sm:h-28 object-cover rounded-xl shrink-0 group-hover:scale-105 transition-transform duration-500"
+        className="w-16 h-16 sm:w-28 sm:h-28 object-cover rounded-xl shrink-0 group-hover:scale-105 transition-transform duration-500"
       />
-      <div className="flex-grow min-w-0 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex-grow min-w-0 flex flex-col md:flex-row md:items-center justify-between gap-3">
         {/* Info Area */}
         <div className="min-w-0 flex-grow">
           <div className="flex flex-wrap items-center gap-2 mb-1">
@@ -481,43 +481,43 @@ const ProductListRow = ({ product }) => {
               </span>
             )}
           </div>
-          <h3 className="font-serif text-base sm:text-lg font-bold text-himbalin-dark truncate group-hover:text-himbalin-gold transition-colors">
+          <h3 className="font-serif text-sm sm:text-lg font-bold text-himbalin-dark truncate group-hover:text-himbalin-gold transition-colors">
             {product.name}
           </h3>
-          <p className="font-sans text-xs text-gray-400 mb-2 line-clamp-2 md:line-clamp-none">
+          <p className="font-sans text-[11px] sm:text-xs text-gray-400 mb-1.5 line-clamp-1 sm:line-clamp-none">
             {product.description}
           </p>
-          <span className="font-sans text-[10px] uppercase tracking-widest text-himbalin-dark/40 font-bold">
+          <span className="font-sans text-[9px] sm:text-[10px] uppercase tracking-widest text-himbalin-dark/40 font-bold">
             {product.category}
           </span>
         </div>
 
         {/* Price & Actions Area */}
-        <div className="flex flex-col items-start sm:items-end justify-start gap-2 shrink-0 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100">
+        <div className="flex md:flex-col items-center md:items-end justify-between md:justify-start gap-2 shrink-0 w-full md:w-auto pt-2.5 md:pt-0 border-t md:border-t-0 border-gray-100">
           <div>
-            <p className="font-serif text-lg sm:text-xl font-black text-himbalin-dark whitespace-nowrap leading-tight">
+            <p className="font-serif text-sm sm:text-xl font-black text-himbalin-dark whitespace-nowrap leading-tight">
               {formatPrice(product.price)}
               {product.priceUnit && (
-                <span className="text-[11px] text-gray-400 font-medium ml-1">
+                <span className="text-[10px] sm:text-[11px] text-gray-400 font-medium ml-0.5">
                   / {product.priceUnit}
                 </span>
               )}
             </p>
             {product.oldPrice && (
-              <p className="font-sans text-xs text-gray-300 line-through text-left sm:text-right">
+              <p className="font-sans text-[11px] text-gray-300 line-through text-left md:text-right">
                 {formatPrice(product.oldPrice)}
               </p>
             )}
           </div>
           <button
             onClick={handleAdd}
-            className={`flex items-center gap-2 px-3.5 py-2 sm:px-4 sm:py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap ${
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${
               inCart
                 ? "bg-green-500 text-white cursor-default"
                 : "bg-himbalin-gold text-himbalin-dark hover:bg-yellow-500"
             }`}
           >
-            {inCart ? <FiCheck size={13} /> : <FiShoppingCart size={13} />}
+            {inCart ? <FiCheck size={12} /> : <FiShoppingCart size={12} />}
             {inCart ? "In Cart" : "Add to Cart"}
           </button>
         </div>
