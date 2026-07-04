@@ -440,14 +440,15 @@ const Chip = ({ label, onRemove }) => (
 
 // ─── List View Row ────────────────────────────────────────────────────────────
 import { useCart } from "../context/CartContext";
-import { FiShoppingCart, FiStar, FiCheck } from "react-icons/fi";
+import { FiShoppingCart, FiStar, FiCheck, FiMinus, FiPlus } from "react-icons/fi";
 import { useState as useLocalState } from "react";
 
 const ProductListRow = ({ product }) => {
-  const { addToCart, isInCart } = useCart();
+  const { addToCart, isInCart, cartItems, updateQuantity, removeFromCart } = useCart();
   const [toast, setToast] = useLocalState(false);
   const [showModal, setShowModal] = useLocalState(false);
   const inCart = isInCart(product.id);
+  const cartItem = cartItems.find((item) => item.id === product.id);
 
   const handleAdd = () => {
     if (inCart) return;
@@ -516,17 +517,39 @@ const ProductListRow = ({ product }) => {
                 </p>
               )}
             </div>
-            <button
-              onClick={handleAdd}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap shrink-0 ${
-                inCart
-                  ? "bg-green-500 text-white cursor-default"
-                  : "bg-himbalin-gold text-himbalin-dark hover:bg-yellow-500"
-              }`}
-            >
-              {inCart ? <FiCheck size={12} /> : <FiShoppingCart size={12} />}
-              {inCart ? "In Cart" : "Add to Cart"}
-            </button>
+            {inCart && cartItem ? (
+              <div className="flex items-center bg-[#fcfbf9] rounded-full border border-gray-100 p-0.5 shadow-sm shrink-0">
+                <button
+                  onClick={() => {
+                    if (cartItem.quantity === 1) {
+                      removeFromCart(product.id);
+                    } else {
+                      updateQuantity(product.id, -1);
+                    }
+                  }}
+                  className="w-7 h-7 flex items-center justify-center hover:bg-gray-200 rounded-full transition-all text-gray-600"
+                >
+                  <FiMinus size={11} />
+                </button>
+                <span className="px-2 text-center font-bold text-xs min-w-[1.2rem] select-none text-himbalin-dark">
+                  {cartItem.quantity}
+                </span>
+                <button
+                  onClick={() => updateQuantity(product.id, 1)}
+                  className="w-7 h-7 flex items-center justify-center hover:bg-gray-200 rounded-full transition-all text-gray-600"
+                >
+                  <FiPlus size={11} />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleAdd}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap shrink-0 bg-himbalin-gold text-himbalin-dark hover:bg-yellow-500"
+              >
+                <FiShoppingCart size={12} />
+                <span>Add to Cart</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

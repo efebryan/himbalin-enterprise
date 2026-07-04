@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FiHeart, FiShoppingCart, FiStar, FiCheck, FiX } from "react-icons/fi";
+import { FiHeart, FiShoppingCart, FiStar, FiCheck, FiX, FiMinus, FiPlus } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "../context/CartContext";
 import { formatPrice } from "../lib/formatCurrency";
@@ -19,10 +19,11 @@ const ProductCard = (props) => {
     stock,
   } = props.product || props;
 
-  const { addToCart, isInCart } = useCart();
+  const { addToCart, isInCart, cartItems, updateQuantity, removeFromCart } = useCart();
   const [showToast, setShowToast] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const alreadyInCart = isInCart(id);
+  const cartItem = cartItems.find((item) => item.id === id);
 
   const handleAddToCart = () => {
     if (alreadyInCart) return; // block duplicate
@@ -159,18 +160,40 @@ const ProductCard = (props) => {
                 )}
               </div>
 
-              <motion.button
-                onClick={handleAddToCart}
-                whileTap={alreadyInCart ? {} : { scale: 0.9 }}
-                title={alreadyInCart ? "Already in cart" : "Add to cart"}
-                className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all transform ${
-                  alreadyInCart
-                    ? "bg-green-500 text-white cursor-default"
-                    : "bg-himbalin-gold text-himbalin-dark hover:bg-orange-500 hover:text-white active:scale-95"
-                }`}
-              >
-                {alreadyInCart ? <FiCheck size={18} /> : <FiShoppingCart size={18} />}
-              </motion.button>
+              {alreadyInCart && cartItem ? (
+                <div className="flex items-center bg-[#fcfbf9] rounded-full border border-gray-100 p-0.5 shadow-sm shrink-0">
+                  <button
+                    onClick={() => {
+                      if (cartItem.quantity === 1) {
+                        removeFromCart(id);
+                      } else {
+                        updateQuantity(id, -1);
+                      }
+                    }}
+                    className="w-8 h-8 flex items-center justify-center hover:bg-gray-200 rounded-full transition-all text-gray-600"
+                  >
+                    <FiMinus size={12} />
+                  </button>
+                  <span className="px-2 text-center font-bold text-xs min-w-[1.5rem] select-none text-himbalin-dark">
+                    {cartItem.quantity}
+                  </span>
+                  <button
+                    onClick={() => updateQuantity(id, 1)}
+                    className="w-8 h-8 flex items-center justify-center hover:bg-gray-200 rounded-full transition-all text-gray-600"
+                  >
+                    <FiPlus size={12} />
+                  </button>
+                </div>
+              ) : (
+                <motion.button
+                  onClick={handleAddToCart}
+                  whileTap={{ scale: 0.9 }}
+                  title="Add to cart"
+                  className="w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all transform bg-himbalin-gold text-himbalin-dark hover:bg-orange-500 hover:text-white active:scale-95 shrink-0"
+                >
+                  <FiShoppingCart size={18} />
+                </motion.button>
+              )}
             </div>
           </div>
         </motion.div>
