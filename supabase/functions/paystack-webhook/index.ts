@@ -13,10 +13,10 @@ serve(async (req: Request) => {
     // 1. Get request body as text for signature verification
     const bodyText = await req.text()
     console.log('Webhook received:', bodyText.substring(0, 100) + '...')
-    
+
     // 2. Verify Paystack signature
     const signature = req.headers.get('x-paystack-signature')
-    
+
     const encoder = new TextEncoder()
     const key = await crypto.subtle.importKey(
       'raw',
@@ -25,13 +25,13 @@ serve(async (req: Request) => {
       false,
       ['sign']
     )
-    
+
     const signatureBuffer = await crypto.subtle.sign(
       'HMAC',
       key,
       encoder.encode(bodyText)
     )
-    
+
     const hashArray = Array.from(new Uint8Array(signatureBuffer))
     const expectedSignature = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
 
@@ -49,37 +49,65 @@ serve(async (req: Request) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // 5. Handle events
+    // 5. Handle charge.success event
     if (event.event === 'charge.success') {
       const reference = event.data.reference
-      const status = 'Paid'
+      console.log('Processing charge.success for reference:', reference)
 
-      // Update order status in database
-      const { data: orderData, error } = await supabaseClient
+      // Try to find order by paystack_reference first, then fallback to order id
+      let orderData: any = null
+
+      const { data: byRef } = await supabaseClient
         .from('orders')
-        .update({ status })
-        .eq('paystack_reference', reference) // or .eq('id', reference)
         .select()
-        .single()
+        .eq('paystack_reference', reference)
+        .maybeSingle()
 
-      if (error) {
-        console.error('Error updating order:', error)
-        return new Response('Error updating database', { status: 500 })
+      if (byRef) {
+        orderData = byRef
+        console.log('Order found by paystack_reference:', orderData.id)
+      } else {
+        const { data: byId } = await supabaseClient
+          .from('orders')
+          .select()
+          .eq('id', reference)
+          .maybeSingle()
+        if (byId) {
+          orderData = byId
+          console.log('Order found by id:', orderData.id)
+        }
       }
 
-      console.log(`Successfully processed payment for order reference: ${reference}`)
+      if (!orderData) {
+        console.error('No order found for reference:', reference)
+        // Return 200 so Paystack does not keep retrying
+        return new Response('Order not found', { status: 200 })
+      }
 
-      // Send Order Confirmation Email
-      if (orderData && orderData.customer_email) {
+      // Update order status to Paid and save reference
+      await supabaseClient
+        .from('orders')
+        .update({ status: 'Paid', paystack_reference: reference })
+        .eq('id', orderData.id)
+
+      console.log(`Successfully updated order ${orderData.id} to Paid`)
+
+      // Send Invoice Email directly via Resend API
+      if (orderData.customer_email) {
         try {
-          const itemsList = Array.isArray(orderData.items) 
+          const resendApiKey = Deno.env.get('RESEND_API_KEY')
+          if (!resendApiKey) throw new Error('Missing RESEND_API_KEY')
+
+          const fromEmail = Deno.env.get('RESEND_FROM_EMAIL') || 'Himbalin Enterprise <shop@himbalinenterprise.com>'
+
+          const itemsList = Array.isArray(orderData.items)
             ? orderData.items.map((item: any) => `
               <tr>
                 <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.name || 'Item'} x ${item.quantity || 1}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">₦${((item.price || 0) * (item.quantity || 1)).toLocaleString()}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">&#8358;${((item.price || 0) * (item.quantity || 1)).toLocaleString()}</td>
               </tr>
-            `).join('') 
-            : '';
+            `).join('')
+            : '<tr><td colspan="2" style="padding:10px;">No item details available.</td></tr>'
 
           const htmlContent = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;">
@@ -89,17 +117,17 @@ serve(async (req: Request) => {
               </div>
               <p>Hello <strong>${orderData.customer_name || 'Valued Customer'}</strong>,</p>
               <p>Thank you for your purchase. We have successfully received your payment. Below is your invoice:</p>
-              
+
               <div style="background-color: #f9f9f9; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
-                <p style="margin: 0;"><strong>Order Number:</strong> #${orderData.id.substring(0,8).toUpperCase()}</p>
+                <p style="margin: 0;"><strong>Order Number:</strong> #${orderData.id.substring(0, 8).toUpperCase()}</p>
                 <p style="margin: 5px 0 0 0;"><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
               </div>
 
               <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
                 <thead>
                   <tr>
-                    <th style="padding: 10px; border-bottom: 2px solid #ccc; text-align: left;">Item Description</th>
-                    <th style="padding: 10px; border-bottom: 2px solid #ccc; text-align: right;">Amount</th>
+                    <th style="padding: 10px; border-bottom: 2px solid #ccc; text-align: left; background-color: #f5f5f5;">Item Description</th>
+                    <th style="padding: 10px; border-bottom: 2px solid #ccc; text-align: right; background-color: #f5f5f5;">Amount</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -107,29 +135,42 @@ serve(async (req: Request) => {
                 </tbody>
                 <tfoot>
                   <tr>
-                    <td style="padding: 10px; font-weight: bold; text-align: right;">Total Amount Paid</td>
-                    <td style="padding: 10px; font-weight: bold; text-align: right; color: #F4A623;">₦${(orderData.total || 0).toLocaleString()}</td>
+                    <td style="padding: 10px; font-weight: bold; text-align: right; border-top: 2px solid #ccc;">Total Amount Paid</td>
+                    <td style="padding: 10px; font-weight: bold; text-align: right; color: #2B1A12; border-top: 2px solid #ccc;">&#8358;${(orderData.total || 0).toLocaleString()}</td>
                   </tr>
                 </tfoot>
               </table>
 
               <p>We are now processing your order and will notify you once it ships.</p>
-              <p style="color: #888; font-size: 12px; margin-top: 30px; text-align: center;">If you have any questions, please contact our support team.</p>
+              <p style="color: #888; font-size: 12px; margin-top: 30px; text-align: center;">For support, contact us at shop@himbalinenterprise.com</p>
             </div>
-          `;
+          `
 
-          await supabaseClient.functions.invoke('send-email', {
-            body: {
-              from: 'Himbalin Enterprise <shop@himbalinenterprise.com>',
+          const resendResponse = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${resendApiKey}`,
+            },
+            body: JSON.stringify({
+              from: fromEmail,
               to: orderData.customer_email,
-              subject: `Order Confirmation - #${orderData.id.substring(0,8).toUpperCase()}`,
-              html: htmlContent
-            }
+              subject: `Your Invoice - Order #${orderData.id.substring(0, 8).toUpperCase()}`,
+              html: htmlContent,
+            }),
           })
-          console.log(`Order confirmation email sent to ${orderData.customer_email}`);
-        } catch (emailError) {
-          console.error('Failed to send order confirmation email:', emailError);
+
+          const resendData = await resendResponse.json()
+          if (!resendResponse.ok) {
+            console.error('Resend error:', JSON.stringify(resendData))
+          } else {
+            console.log(`Invoice email sent to ${orderData.customer_email}:`, JSON.stringify(resendData))
+          }
+        } catch (emailError: any) {
+          console.error('Failed to send invoice email:', emailError.message)
         }
+      } else {
+        console.warn('No customer_email on order, skipping invoice email.')
       }
     }
 
