@@ -72,15 +72,49 @@ serve(async (req: Request) => {
       // Send Order Confirmation Email
       if (orderData && orderData.customer_email) {
         try {
+          const itemsList = Array.isArray(orderData.items) 
+            ? orderData.items.map((item: any) => `
+              <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.name || 'Item'} x ${item.quantity || 1}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">₦${((item.price || 0) * (item.quantity || 1)).toLocaleString()}</td>
+              </tr>
+            `).join('') 
+            : '';
+
           const htmlContent = `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-              <h2 style="color: #2B1A12;">Order Confirmation</h2>
-              <p>Hello ${orderData.customer_name || 'Valued Customer'},</p>
-              <p>Thank you for your purchase! We have successfully received your payment for order <strong>#${orderData.id.substring(0,8).toUpperCase()}</strong>.</p>
-              <p><strong>Total Amount:</strong> ₦${orderData.total.toLocaleString()}</p>
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;">
+              <div style="text-align: center; margin-bottom: 20px;">
+                <h1 style="color: #2B1A12; margin: 0;">Purchase Invoice</h1>
+                <p style="color: #666; margin-top: 5px;">Himbalin Enterprise</p>
+              </div>
+              <p>Hello <strong>${orderData.customer_name || 'Valued Customer'}</strong>,</p>
+              <p>Thank you for your purchase. We have successfully received your payment. Below is your invoice:</p>
+              
+              <div style="background-color: #f9f9f9; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                <p style="margin: 0;"><strong>Order Number:</strong> #${orderData.id.substring(0,8).toUpperCase()}</p>
+                <p style="margin: 5px 0 0 0;"><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+              </div>
+
+              <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <thead>
+                  <tr>
+                    <th style="padding: 10px; border-bottom: 2px solid #ccc; text-align: left;">Item Description</th>
+                    <th style="padding: 10px; border-bottom: 2px solid #ccc; text-align: right;">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${itemsList}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td style="padding: 10px; font-weight: bold; text-align: right;">Total Amount Paid</td>
+                    <td style="padding: 10px; font-weight: bold; text-align: right; color: #F4A623;">₦${(orderData.total || 0).toLocaleString()}</td>
+                  </tr>
+                </tfoot>
+              </table>
+
               <p>We are now processing your order and will notify you once it ships.</p>
-              <br/>
-              <p>Best regards,<br/>Himbalin Enterprise</p>
+              <p style="color: #888; font-size: 12px; margin-top: 30px; text-align: center;">If you have any questions, please contact our support team.</p>
             </div>
           `;
 

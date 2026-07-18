@@ -199,7 +199,7 @@ const ContactFormSection = () => {
                     General Inquiries
                   </h4>
                   <p className="font-sans text-sm text-himbalin-dark/60">
-                    {settings?.store_email || "info@himbalin.com"}
+                    {settings?.store_email || "info@himbalinenterprise.com"}
                   </p>
                   <p className="font-sans text-sm text-himbalin-dark/60 mt-1">
                     {settings?.store_phone || "+234 700 000 0001"}

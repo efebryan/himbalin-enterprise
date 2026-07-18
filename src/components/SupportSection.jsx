@@ -45,7 +45,7 @@ const SupportSection = () => {
           <motion.a
             whileHover={{ scale: 1.03, backgroundColor: "rgba(255, 255, 255, 0.08)" }}
             whileTap={{ scale: 0.97 }}
-            href="mailto:support@himbalin.com?subject=Delivery Assistance"
+            href="mailto:support@himbalinenterprise.com?subject=Delivery Assistance"
             className="flex flex-col items-center justify-center p-6 bg-white/5 border border-white/10 rounded-xl transition-all"
           >
             <FiMail className="text-2xl text-himbalin-gold mb-3" />

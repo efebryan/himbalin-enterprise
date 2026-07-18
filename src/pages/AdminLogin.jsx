@@ -273,7 +273,7 @@ const AdminLogin = () => {
                       id="admin-email"
                       type="email"
                       autoComplete="username email"
-                      placeholder="admin@himbalin.com"
+                      placeholder="admin@himbalinenterprise.com"
                       value={email}
                       onChange={(e) => { setEmail(e.target.value); setError(""); }}
                       disabled={isLocked || submitting}

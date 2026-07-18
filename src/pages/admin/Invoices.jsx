@@ -141,7 +141,7 @@ const InvoiceModal = ({ invoice, onClose, settings }) => {
               <p className="text-xs text-gray-500 max-w-xs leading-relaxed">
                 {settings?.store_address || "14 Admiralty Way, Lekki Phase 1, Lagos, Nigeria"}
               </p>
-              <p className="text-xs text-gray-500 mt-1">{settings?.store_email || "info@himbalin.com"}</p>
+              <p className="text-xs text-gray-500 mt-1">{settings?.store_email || "info@himbalinenterprise.com"}</p>
             </div>
             <div className="text-right">
               <h1 className="font-serif text-3xl font-bold text-[#2B1A12] mb-1">INVOICE</h1>
@@ -250,7 +250,7 @@ const InvoiceModal = ({ invoice, onClose, settings }) => {
           <div className="border-t border-gray-100 pt-6 text-center">
             <p className="text-xs text-gray-400 leading-relaxed">
               Thank you for choosing <span className="font-bold text-[#2B1A12]">{settings?.store_name || "Himbalin Enterprise"}</span> for your luxury furniture needs.
-              For any queries regarding this invoice, please contact {settings?.store_email || "info@himbalin.com"}.
+              For any queries regarding this invoice, please contact {settings?.store_email || "info@himbalinenterprise.com"}.
             </p>
           </div>
         </div>
