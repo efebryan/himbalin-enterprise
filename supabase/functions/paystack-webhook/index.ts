@@ -120,6 +120,7 @@ serve(async (req: Request) => {
 
           await supabaseClient.functions.invoke('send-email', {
             body: {
+              from: 'Himbalin Enterprise <shop@himbalinenterprise.com>',
               to: orderData.customer_email,
               subject: `Order Confirmation - #${orderData.id.substring(0,8).toUpperCase()}`,
               html: htmlContent

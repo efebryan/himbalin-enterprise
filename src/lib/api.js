@@ -166,6 +166,7 @@ export async function updateOrderStatus(id, status) {
       // We do not await this so it doesn't block the UI update
       supabase.functions.invoke('send-email', {
         body: {
+          from: 'Himbalin Enterprise <shop@himbalinenterprise.com>',
           to: data.customer_email,
           subject,
           html: htmlContent

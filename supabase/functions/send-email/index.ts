@@ -15,7 +15,7 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { to, subject, html } = await req.json()
+    const { to, subject, html, from: customFrom } = await req.json()
 
     if (!to || !subject || !html) {
       return new Response(
@@ -29,8 +29,7 @@ serve(async (req: Request) => {
       throw new Error('Missing RESEND_API_KEY environment variable.')
     }
 
-    // Default sender (resend requires a verified domain, onboarding@resend.dev works for testing)
-    const from = Deno.env.get('RESEND_FROM_EMAIL') || 'onboarding@resend.dev'
+    const from = customFrom || Deno.env.get('RESEND_FROM_EMAIL') || 'Himbalin Enterprise <shop@himbalinenterprise.com>'
 
     const resRequest = await fetch('https://api.resend.com/emails', {
       method: 'POST',
