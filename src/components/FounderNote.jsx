@@ -1,6 +1,16 @@
 import { FaQuoteLeft } from "react-icons/fa";
+import { useSiteSettings } from "../context/SiteSettingsContext";
 
 const FounderNote = () => {
+  const { settings } = useSiteSettings();
+
+  const name = settings?.admin_first_name 
+    ? `${settings.admin_first_name} ${settings.admin_last_name || ""}` 
+    : "Illione Anthony Ekene";
+  const role = settings?.admin_role || "Chief Executive Officer (CEO)";
+  const bio = settings?.admin_bio || "Furniture is not merely utility; it is the silent companion to our lives. When we design a table, we are designing the place where families will gather for decades. That responsibility is what drives our excellence every single day.";
+  const image = settings?.admin_image || "/images/portrait_elias_himbalin.png";
+
   return (
     <section className="py-24 px-8 bg-white overflow-hidden">
       <div className="container mx-auto max-w-6xl flex flex-col lg:flex-row items-center gap-16">
@@ -8,8 +18,8 @@ const FounderNote = () => {
         <div className="w-full lg:w-5/12 relative">
           <div className="w-full aspect-[4/5] rounded-3xl overflow-hidden shadow-hover relative z-10 border-4 border-white">
             <img
-              src="/images/portrait_elias_himbalin.png"
-              alt="Founder Elias Himbalin"
+              src={image}
+              alt={`Founder ${name}`}
               className="w-full h-full object-cover"
             />
           </div>
@@ -26,18 +36,15 @@ const FounderNote = () => {
           </h2>
 
           <blockquote className="font-serif text-2xl lg:text-3xl text-himbalin-dark/80 italic leading-relaxed mb-10 border-l-4 border-himbalin-gold pl-6 py-2">
-            "Furniture is not merely utility; it is the silent companion to our
-            lives. When we design a table, we are designing the place where
-            families will gather for decades. That responsibility is what drives
-            our excellence every single day."
+            "{bio}"
           </blockquote>
 
           <div>
             <h4 className="font-sans font-bold text-lg text-himbalin-dark tracing-wide">
-              Illione Anthony Ekene
+              {name}
             </h4>
             <p className="font-sans text-himbalin-gold font-semibold text-sm tracking-wider uppercase mt-1">
-              Chief Executive Officer (CEO)
+              {role}
             </p>
           </div>
         </div>

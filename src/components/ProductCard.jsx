@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FiHeart, FiShoppingCart, FiStar, FiCheck, FiX, FiMinus, FiPlus } from "react-icons/fi";
+import { FiHeart, FiShoppingCart, FiStar, FiCheck, FiX, FiMinus, FiPlus, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "../context/CartContext";
 import { formatPrice } from "../lib/formatCurrency";
@@ -15,6 +15,7 @@ const ProductCard = (props) => {
     rating,
     reviews,
     image,
+    images = [],
     badge,
     stock,
   } = props.product || props;
@@ -22,6 +23,7 @@ const ProductCard = (props) => {
   const { addToCart, isInCart, cartItems, updateQuantity, removeFromCart } = useCart();
   const [showToast, setShowToast] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const alreadyInCart = isInCart(id);
   const cartItem = cartItems.find((item) => item.id === id);
 
@@ -39,6 +41,8 @@ const ProductCard = (props) => {
   const formattedOldPrice = typeof oldPrice === "number" ? oldPrice.toFixed(2) : null;
   const displayRating = rating ?? 0;
   const displayReviews = reviews ?? 0;
+  
+  const displayImages = images.length > 0 ? images : [image].filter(Boolean);
 
   return (
     <>
@@ -223,12 +227,48 @@ const ProductCard = (props) => {
                 {/* Modal Header/Image */}
                 <div className="relative h-64 bg-gray-50 shrink-0">
                   <img
-                    src={image || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800"}
+                    src={displayImages[currentImageIndex] || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800"}
                     alt={name || "Product"}
                     className="w-full h-full object-cover"
                   />
+                  {displayImages.length > 1 && (
+                    <>
+                      <div
+                        className="absolute inset-y-0 left-0 w-1/3 z-10 cursor-pointer flex items-center justify-start pl-4"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCurrentImageIndex((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1));
+                        }}
+                      >
+                        <div className="w-8 h-8 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center text-himbalin-dark shadow-md hover:bg-white transition-colors">
+                          <FiChevronLeft size={20} />
+                        </div>
+                      </div>
+                      <div
+                        className="absolute inset-y-0 right-0 w-1/3 z-10 cursor-pointer flex items-center justify-end pr-4"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCurrentImageIndex((prev) => (prev === displayImages.length - 1 ? 0 : prev + 1));
+                        }}
+                      >
+                        <div className="w-8 h-8 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center text-himbalin-dark shadow-md hover:bg-white transition-colors">
+                          <FiChevronRight size={20} />
+                        </div>
+                      </div>
+                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-20">
+                        {displayImages.map((_, i) => (
+                          <div
+                            key={i}
+                            className={`h-1.5 rounded-full transition-all ${
+                              i === currentImageIndex ? "w-4 bg-himbalin-gold" : "w-1.5 bg-white/50"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
                   {badge && (
-                    <div className="absolute top-4 left-4">
+                    <div className="absolute top-4 left-4 z-20">
                       <span
                         className={`px-4 py-1.5 rounded-full font-sans text-[10px] font-black tracking-[0.1em] uppercase ${
                           badge.toString().includes("SALE")
@@ -244,7 +284,7 @@ const ProductCard = (props) => {
                   )}
                   <button
                     onClick={() => setShowModal(false)}
-                    className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-sm transition-all focus:outline-none"
+                    className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-sm transition-all focus:outline-none z-20"
                   >
                     <FiX size={20} />
                   </button>

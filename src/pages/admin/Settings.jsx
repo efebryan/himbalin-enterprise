@@ -69,6 +69,7 @@ const Settings = () => {
     phone: "",
     role: "",
     bio: "",
+    image: "",
   });
 
   // ── Security State ──
@@ -124,6 +125,7 @@ const Settings = () => {
             phone: data.admin_phone || "",
             role: data.admin_role || "",
             bio: data.admin_bio || "",
+            image: data.admin_image || "",
           });
           setStore({
             storeName: data.store_name || "",
@@ -163,6 +165,20 @@ const Settings = () => {
     }
   };
 
+  const handleFounderImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    showToast("Uploading founder image...", "success");
+    try {
+      const publicUrl = await uploadBrandAsset(file);
+      setProfile((prev) => ({ ...prev, image: publicUrl }));
+      showToast("Founder image uploaded! Don't forget to save.", "success");
+    } catch (err) {
+      console.error("Founder image upload error:", err);
+      showToast(`Failed to upload image: ${err.message || err}`, "error");
+    }
+  };
+
   const handleStoreAssetUpload = async (e, type) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -189,7 +205,10 @@ const Settings = () => {
         admin_phone: profile.phone,
         admin_role: profile.role,
         admin_bio: profile.bio,
+        admin_image: profile.image,
       });
+      // Refresh context so changes are immediately available (e.g. FounderNote)
+      await fetchSettings();
       showToast("Profile updated successfully!");
     } catch (err) {
       console.error("Failed to save profile:", err);
@@ -335,6 +354,34 @@ const Settings = () => {
           className={`${inputBase} resize-none`}
         />
         <p className="text-[10px] text-gray-400 mt-1 text-right">{profile.bio.length}/300</p>
+      </div>
+
+      <hr className="border-gray-100" />
+
+      {/* Founder Image (About Page) */}
+      <div>
+        <h3 className="text-sm font-bold text-[#2B1A12] mb-4 flex items-center gap-2">
+          <FiCamera className="text-[#F4A623]" /> Founder Image (About Page)
+        </h3>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+          <div className="relative group">
+            <img
+              src={profile.image || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=200&h=250&q=80"}
+              alt="Founder"
+              className="w-24 h-32 rounded-lg border border-gray-200 object-cover"
+            />
+            <label className="absolute inset-0 bg-black/40 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+              <FiCamera className="text-white text-xl" />
+              <input type="file" className="hidden" accept="image/*" onChange={handleFounderImageUpload} />
+            </label>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 mb-1">
+              Upload a vertical (portrait) photo of the founder to be displayed on the About page.
+            </p>
+            <p className="text-xs text-gray-400">Recommended size: 400x500px or similar aspect ratio.</p>
+          </div>
+        </div>
       </div>
 
       {/* Save */}

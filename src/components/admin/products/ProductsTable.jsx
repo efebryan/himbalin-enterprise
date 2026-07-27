@@ -89,13 +89,18 @@ const ProductsTable = ({ products, loading, fetchProducts }) => {
 
   const handleSaveProduct = async (productData, isDraft, isEdit) => {
     try {
-      let imageUrl = productData.image;
+      let imageUrls = productData.existingImages || [];
       
-      // If there is a new file attached, upload it first
-      if (productData.imageFile) {
-        setToast({ visible: true, message: "Uploading image...", type: "success" });
-        imageUrl = await uploadProductImage(productData.imageFile);
+      // If there are new files attached, upload them sequentially
+      if (productData.imageFiles && productData.imageFiles.length > 0) {
+        setToast({ visible: true, message: "Uploading images...", type: "success" });
+        for (const file of productData.imageFiles) {
+          const url = await uploadProductImage(file);
+          imageUrls.push(url);
+        }
       }
+      
+      const imageUrl = imageUrls.length > 0 ? imageUrls[0] : productData.image;
 
       // We remove fields not present in DB schema before saving
       const dbPayload = {
@@ -106,6 +111,7 @@ const ProductsTable = ({ products, loading, fetchProducts }) => {
         availability: productData.status,
         stock: productData.stock,
         image_url: imageUrl,
+        images: imageUrls,
         price_unit: productData.priceUnit || 'per piece',
       };
 

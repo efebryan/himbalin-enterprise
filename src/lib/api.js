@@ -7,6 +7,7 @@ function mapProduct(row) {
   return {
     ...row,
     image: row.image_url || row.image,        // DB uses image_url, frontend uses image
+    images: row.images && row.images.length > 0 ? row.images : [row.image_url || row.image].filter(Boolean),
     oldPrice: row.old_price ?? row.oldPrice,   // DB uses old_price, frontend uses oldPrice
     priceUnit: row.price_unit ?? row.priceUnit ?? 'per piece',
   }

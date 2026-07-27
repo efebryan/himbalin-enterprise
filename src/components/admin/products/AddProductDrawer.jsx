@@ -43,7 +43,9 @@ const AddProductDrawer = ({ isOpen, onClose, onSave, editProduct, categories = C
         tags: editProduct.tags || [],
         images: [],
       });
-      if (editProduct.image) {
+      if (editProduct.images && editProduct.images.length > 0) {
+        setPreviewImages(editProduct.images.map((url) => ({ url, existing: true })));
+      } else if (editProduct.image) {
         setPreviewImages([{ url: editProduct.image, existing: true }]);
       }
     } else if (!isOpen) {
@@ -165,7 +167,8 @@ const AddProductDrawer = ({ isOpen, onClose, onSave, editProduct, categories = C
         previewImages.length > 0
           ? previewImages[0].url
           : "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=150",
-      imageFile: previewImages.length > 0 ? previewImages[0].file : null,
+      imageFiles: previewImages.filter(p => !p.existing).map(p => p.file),
+      existingImages: previewImages.filter(p => p.existing).map(p => p.url),
     };
 
     onSave(productData, isDraft, isEditMode);

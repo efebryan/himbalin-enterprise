@@ -32,6 +32,10 @@ const Shop = () => {
   const [sortBy, setSortBy] = useState("popularity");
   const [viewMode, setViewMode] = useState("grid"); // "grid" | "list"
   const [showSortMenu, setShowSortMenu] = useState(false);
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -93,6 +97,11 @@ const Shop = () => {
     return list;
   }, [allProducts, activeCategory, activeAvailability, activeMaterials, sortBy]);
 
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeCategory, activeAvailability, activeMaterials, sortBy]);
+
   // ── Helpers ───────────────────────────────────────────────────────────────
   const toggleMaterial = (mat) =>
     setActiveMaterials((prev) =>
@@ -109,6 +118,7 @@ const Shop = () => {
     setActiveAvailability([]);
     setActiveMaterials([]);
     setSortBy("popularity");
+    setCurrentPage(1);
   };
 
   const hasActiveFilters =
@@ -118,6 +128,13 @@ const Shop = () => {
 
   const currentSortLabel =
     SORT_OPTIONS.find((o) => o.value === sortBy)?.label ?? "Popularity";
+
+  // Compute pagination
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedProducts = filtered.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <>
@@ -345,9 +362,9 @@ const Shop = () => {
                 {/* Result count */}
                 <p className="font-sans text-sm text-himbalin-dark/50 mb-6">
                   <span className="font-bold text-himbalin-dark">
-                    {filtered.length}
+                    Showing {paginatedProducts.length}
                   </span>{" "}
-                  {filtered.length === 1 ? "product" : "products"} found
+                  of {filtered.length} {filtered.length === 1 ? "product" : "products"}
                 </p>
 
                 {/* Empty state */}
@@ -376,8 +393,8 @@ const Shop = () => {
                     layout
                     className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-16"
                   >
-                    <AnimatePresence>
-                      {filtered.map((product) => (
+                    <AnimatePresence mode="popLayout">
+                      {paginatedProducts.map((product) => (
                         <motion.div
                           key={product.id}
                           layout
@@ -394,8 +411,8 @@ const Shop = () => {
                 ) : (
                   // List view
                   <div className="flex flex-col gap-4 mb-16">
-                    <AnimatePresence>
-                      {filtered.map((product) => (
+                    <AnimatePresence mode="popLayout">
+                      {paginatedProducts.map((product) => (
                         <motion.div
                           key={product.id}
                           layout
@@ -411,10 +428,17 @@ const Shop = () => {
                   </div>
                 )}
 
-                {/* Pagination (only when there are more than 10 results) */}
-                {filtered.length > 10 && (
+                {/* Pagination (only when there is more than 1 page) */}
+                {totalPages > 1 && (
                   <div className="flex flex-col items-center gap-6 mt-4 pb-12">
-                    <ShopPagination />
+                    <ShopPagination 
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={(page) => {
+                        setCurrentPage(page);
+                        window.scrollTo({ top: 400, behavior: "smooth" });
+                      }}
+                    />
                   </div>
                 )}
               </div>
@@ -440,15 +464,18 @@ const Chip = ({ label, onRemove }) => (
 
 // ─── List View Row ────────────────────────────────────────────────────────────
 import { useCart } from "../context/CartContext";
-import { FiShoppingCart, FiStar, FiCheck, FiMinus, FiPlus } from "react-icons/fi";
+import { FiShoppingCart, FiStar, FiCheck, FiMinus, FiPlus, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { useState as useLocalState } from "react";
 
 const ProductListRow = ({ product }) => {
   const { addToCart, isInCart, cartItems, updateQuantity, removeFromCart } = useCart();
   const [toast, setToast] = useLocalState(false);
   const [showModal, setShowModal] = useLocalState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useLocalState(0);
   const inCart = isInCart(product.id);
   const cartItem = cartItems.find((item) => item.id === product.id);
+
+  const displayImages = product.images && product.images.length > 0 ? product.images : [product.image].filter(Boolean);
 
   const handleAdd = () => {
     if (inCart) return;
@@ -578,12 +605,48 @@ const ProductListRow = ({ product }) => {
                 {/* Modal Header/Image */}
                 <div className="relative h-64 bg-gray-50 shrink-0">
                   <img
-                    src={product.image || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800"}
+                    src={displayImages[currentImageIndex] || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800"}
                     alt={product.name || "Product"}
                     className="w-full h-full object-cover"
                   />
+                  {displayImages.length > 1 && (
+                    <>
+                      <div
+                        className="absolute inset-y-0 left-0 w-1/3 z-10 cursor-pointer flex items-center justify-start pl-4"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCurrentImageIndex((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1));
+                        }}
+                      >
+                        <div className="w-8 h-8 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center text-himbalin-dark shadow-md hover:bg-white transition-colors">
+                          <FiChevronLeft size={20} />
+                        </div>
+                      </div>
+                      <div
+                        className="absolute inset-y-0 right-0 w-1/3 z-10 cursor-pointer flex items-center justify-end pr-4"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCurrentImageIndex((prev) => (prev === displayImages.length - 1 ? 0 : prev + 1));
+                        }}
+                      >
+                        <div className="w-8 h-8 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center text-himbalin-dark shadow-md hover:bg-white transition-colors">
+                          <FiChevronRight size={20} />
+                        </div>
+                      </div>
+                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-20">
+                        {displayImages.map((_, i) => (
+                          <div
+                            key={i}
+                            className={`h-1.5 rounded-full transition-all ${
+                              i === currentImageIndex ? "w-4 bg-himbalin-gold" : "w-1.5 bg-white/50"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
                   {product.badge && (
-                    <div className="absolute top-4 left-4">
+                    <div className="absolute top-4 left-4 z-20">
                       <span
                         className={`px-4 py-1.5 rounded-full font-sans text-[10px] font-black tracking-[0.1em] uppercase ${
                           product.badge.toString().includes("SALE")
@@ -599,7 +662,7 @@ const ProductListRow = ({ product }) => {
                   )}
                   <button
                     onClick={() => setShowModal(false)}
-                    className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-sm transition-all focus:outline-none"
+                    className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-sm transition-all focus:outline-none z-20"
                   >
                     <FiX size={20} />
                   </button>
