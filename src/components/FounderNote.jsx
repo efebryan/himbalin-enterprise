@@ -4,11 +4,13 @@ import { useSiteSettings } from "../context/SiteSettingsContext";
 const FounderNote = () => {
   const { settings } = useSiteSettings();
 
-  const name = settings?.admin_first_name 
-    ? `${settings.admin_first_name} ${settings.admin_last_name || ""}` 
-    : "Illione Anthony Ekene";
+  const name = settings?.admin_first_name
+    ? `${settings.admin_first_name} ${settings.admin_last_name || ""}`
+    : "Ilione Anthony Ekene";
   const role = settings?.admin_role || "Chief Executive Officer (CEO)";
-  const bio = settings?.admin_bio || "Furniture is not merely utility; it is the silent companion to our lives. When we design a table, we are designing the place where families will gather for decades. That responsibility is what drives our excellence every single day.";
+  const bio =
+    settings?.admin_bio ||
+    "Furniture is not merely utility; it is the silent companion to our lives. When we design a table, we are designing the place where families will gather for decades. That responsibility is what drives our excellence every single day.";
   const image = settings?.admin_image || "/images/portrait_elias_himbalin.png";
 
   return (
