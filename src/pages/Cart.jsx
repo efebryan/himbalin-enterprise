@@ -69,6 +69,12 @@ const Cart = () => {
 
                     <div className="flex-grow text-center sm:text-left">
                       <h3 className="text-lg font-bold text-[#1a1a1a] mb-1">{item.name}</h3>
+                      {(item.selectedSize || item.selectedColor) && (
+                        <p className="text-xs text-gray-500 mb-1">
+                          {item.selectedSize && <span className="mr-2">Size: <span className="font-bold text-[#1a1a1a]">{item.selectedSize}</span></span>}
+                          {item.selectedColor && <span>Color: <span className="font-bold text-[#1a1a1a]">{item.selectedColor}</span></span>}
+                        </p>
+                      )}
                       <p className={`text-xs font-semibold mb-2 ${item.status === "In Stock" ? "text-green-600" : "text-himbalin-gold"}`}>
                         {item.status}
                       </p>

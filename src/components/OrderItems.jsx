@@ -35,6 +35,12 @@ const OrderItems = ({ items }) => {
               <h4 className="font-semibold text-sm text-himbalin-dark truncate">
                 {item.name}
               </h4>
+              {(item.selectedSize || item.selectedColor) && (
+                <p className="text-[10px] text-gray-400 mt-0.5">
+                  {item.selectedSize && <span className="mr-2">Size: {item.selectedSize}</span>}
+                  {item.selectedColor && <span>Color: {item.selectedColor}</span>}
+                </p>
+              )}
               <p className="text-xs text-gray-400 font-medium">
                 Qty: {item.quantity}
               </p>

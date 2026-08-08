@@ -18,18 +18,49 @@ const ProductCard = (props) => {
     images = [],
     badge,
     stock,
+    sizes = [],
+    colors = [],
   } = props.product || props;
 
   const { addToCart, isInCart, cartItems, updateQuantity, removeFromCart } = useCart();
   const [showToast, setShowToast] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const alreadyInCart = isInCart(id);
-  const cartItem = cartItems.find((item) => item.id === id);
+  const [selectedSize, setSelectedSize] = useState(sizes[0] || "");
+  const [selectedColor, setSelectedColor] = useState(colors[0] || "");
 
-  const handleAddToCart = () => {
+  const getCartId = () => {
+    let idStr = id;
+    if (selectedSize) idStr += `-${selectedSize}`;
+    if (selectedColor) idStr += `-${selectedColor}`;
+    return idStr;
+  };
+  const cartId = getCartId();
+
+  const alreadyInCart = isInCart(cartId);
+  const cartItem = cartItems.find((item) => item.id === cartId);
+
+  const handleAddToCart = (e) => {
+    if (e) e.stopPropagation();
+    
+    // If the product has variants and we're not in the modal, force them to open the modal
+    if ((sizes.length > 0 || colors.length > 0) && !showModal) {
+      setShowModal(true);
+      return;
+    }
+
     if (alreadyInCart) return; // block duplicate
-    const added = addToCart({ id, name, description, price, image, priceUnit });
+    const added = addToCart({ 
+      id: cartId, 
+      originalId: id,
+      name, 
+      description, 
+      price, 
+      image, 
+      priceUnit,
+      selectedSize,
+      selectedColor
+    });
     if (added) {
       setShowToast(true);
       setTimeout(() => setShowToast(false), 2500);
@@ -167,11 +198,12 @@ const ProductCard = (props) => {
               {alreadyInCart && cartItem ? (
                 <div className="flex items-center bg-[#fcfbf9] rounded-full border border-gray-100 p-0.5 shadow-sm shrink-0">
                   <button
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       if (cartItem.quantity === 1) {
-                        removeFromCart(id);
+                        removeFromCart(cartId);
                       } else {
-                        updateQuantity(id, -1);
+                        updateQuantity(cartId, -1);
                       }
                     }}
                     className="w-8 h-8 flex items-center justify-center hover:bg-gray-200 rounded-full transition-all text-gray-600"
@@ -182,7 +214,10 @@ const ProductCard = (props) => {
                     {cartItem.quantity}
                   </span>
                   <button
-                    onClick={() => updateQuantity(id, 1)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      updateQuantity(cartId, 1);
+                    }}
                     className="w-8 h-8 flex items-center justify-center hover:bg-gray-200 rounded-full transition-all text-gray-600"
                   >
                     <FiPlus size={12} />
@@ -192,7 +227,7 @@ const ProductCard = (props) => {
                 <motion.button
                   onClick={handleAddToCart}
                   whileTap={{ scale: 0.9 }}
-                  title="Add to cart"
+                  title={(sizes.length > 0 || colors.length > 0) ? "Select options" : "Add to cart"}
                   className="w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all transform bg-himbalin-gold text-himbalin-dark hover:bg-orange-500 hover:text-white active:scale-95 shrink-0"
                 >
                   <FiShoppingCart size={18} />
@@ -324,6 +359,57 @@ const ProductCard = (props) => {
 
                   {/* Divider */}
                   <div className="w-16 h-1 bg-[#F4A623] rounded-full" />
+
+                  {/* Variants */}
+                  {(sizes.length > 0 || colors.length > 0) && (
+                    <div className="space-y-4 pt-2">
+                      {sizes.length > 0 && (
+                        <div>
+                          <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                            Select Size
+                          </h4>
+                          <div className="flex flex-wrap gap-2">
+                            {sizes.map((size) => (
+                              <button
+                                key={size}
+                                onClick={() => setSelectedSize(size)}
+                                className={`px-4 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                                  selectedSize === size
+                                    ? "bg-himbalin-dark text-himbalin-gold border-himbalin-dark"
+                                    : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
+                                }`}
+                              >
+                                {size}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {colors.length > 0 && (
+                        <div>
+                          <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                            Select Color
+                          </h4>
+                          <div className="flex flex-wrap gap-2">
+                            {colors.map((color) => (
+                              <button
+                                key={color}
+                                onClick={() => setSelectedColor(color)}
+                                className={`px-4 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                                  selectedColor === color
+                                    ? "bg-himbalin-dark text-himbalin-gold border-himbalin-dark"
+                                    : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
+                                }`}
+                              >
+                                {color}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Description */}
                   <div className="space-y-2">

@@ -15,6 +15,8 @@ const emptyForm = {
   stock: "",
   status: "In Stock",
   tags: [],
+  sizes: "",
+  colors: "",
   images: [],
 };
 
@@ -41,6 +43,8 @@ const AddProductDrawer = ({ isOpen, onClose, onSave, editProduct, categories = C
         stock: editProduct.stock?.toString() || "0",
         status: editProduct.status || "In Stock",
         tags: editProduct.tags || [],
+        sizes: (editProduct.sizes || []).join(", "),
+        colors: (editProduct.colors || []).join(", "),
         images: [],
       });
       if (editProduct.images && editProduct.images.length > 0) {
@@ -156,6 +160,8 @@ const AddProductDrawer = ({ isOpen, onClose, onSave, editProduct, categories = C
       priceUnit: form.priceUnit,
       stock: Number(form.stock) || 0,
       tags: form.tags,
+      sizes: form.sizes ? form.sizes.split(",").map((s) => s.trim()).filter(Boolean) : [],
+      colors: form.colors ? form.colors.split(",").map((s) => s.trim()).filter(Boolean) : [],
       status: isDraft
         ? "Draft"
         : Number(form.stock) === 0
@@ -487,6 +493,41 @@ const AddProductDrawer = ({ isOpen, onClose, onSave, editProduct, categories = C
                   </button>
                 );
               })}
+            </div>
+          </div>
+
+          {/* ── Section 4: Variants ── */}
+          <div className="space-y-4">
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 pb-2">
+              Variants (Optional)
+            </h3>
+            
+            <div>
+              <label className="text-xs font-bold text-gray-500 mb-1.5 block">
+                Sizes
+              </label>
+              <input
+                type="text"
+                value={form.sizes}
+                onChange={(e) => handleChange("sizes", e.target.value)}
+                placeholder="e.g. Small, Medium, Large"
+                className={`${inputBase} border-gray-200`}
+              />
+              <p className="text-[10px] text-gray-400 mt-1">Separate sizes with commas</p>
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-gray-500 mb-1.5 block">
+                Colors
+              </label>
+              <input
+                type="text"
+                value={form.colors}
+                onChange={(e) => handleChange("colors", e.target.value)}
+                placeholder="e.g. Red, Blue, #FFFFFF"
+                className={`${inputBase} border-gray-200`}
+              />
+              <p className="text-[10px] text-gray-400 mt-1">Separate colors with commas</p>
             </div>
           </div>
         </div>

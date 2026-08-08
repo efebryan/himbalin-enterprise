@@ -113,6 +113,8 @@ const ProductsTable = ({ products, loading, fetchProducts }) => {
         image_url: imageUrl,
         images: imageUrls,
         price_unit: productData.priceUnit || 'per piece',
+        sizes: productData.sizes,
+        colors: productData.colors,
       };
 
       if (isEdit) {

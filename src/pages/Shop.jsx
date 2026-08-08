@@ -472,14 +472,46 @@ const ProductListRow = ({ product }) => {
   const [toast, setToast] = useLocalState(false);
   const [showModal, setShowModal] = useLocalState(false);
   const [currentImageIndex, setCurrentImageIndex] = useLocalState(0);
-  const inCart = isInCart(product.id);
-  const cartItem = cartItems.find((item) => item.id === product.id);
+  
+  const sizes = product.sizes || [];
+  const colors = product.colors || [];
+  const [selectedSize, setSelectedSize] = useLocalState(sizes[0] || "");
+  const [selectedColor, setSelectedColor] = useLocalState(colors[0] || "");
+
+  const getCartId = () => {
+    let idStr = product.id;
+    if (selectedSize) idStr += `-${selectedSize}`;
+    if (selectedColor) idStr += `-${selectedColor}`;
+    return idStr;
+  };
+  const cartId = getCartId();
+
+  const inCart = isInCart(cartId);
+  const cartItem = cartItems.find((item) => item.id === cartId);
 
   const displayImages = product.images && product.images.length > 0 ? product.images : [product.image].filter(Boolean);
 
-  const handleAdd = () => {
+  const handleAdd = (e) => {
+    if (e) e.stopPropagation();
+    
+    // If the product has variants and we're not in the modal, force them to open the modal
+    if ((sizes.length > 0 || colors.length > 0) && !showModal) {
+      setShowModal(true);
+      return;
+    }
+
     if (inCart) return;
-    addToCart(product);
+    addToCart({
+      id: cartId,
+      originalId: product.id,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      image: product.image,
+      priceUnit: product.priceUnit,
+      selectedSize,
+      selectedColor
+    });
     setToast(true);
     setTimeout(() => setToast(false), 2000);
   };
@@ -547,11 +579,12 @@ const ProductListRow = ({ product }) => {
             {inCart && cartItem ? (
               <div className="flex items-center bg-[#fcfbf9] rounded-full border border-gray-100 p-0.5 shadow-sm shrink-0">
                 <button
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     if (cartItem.quantity === 1) {
-                      removeFromCart(product.id);
+                      removeFromCart(cartId);
                     } else {
-                      updateQuantity(product.id, -1);
+                      updateQuantity(cartId, -1);
                     }
                   }}
                   className="w-7 h-7 flex items-center justify-center hover:bg-gray-200 rounded-full transition-all text-gray-600"
@@ -562,7 +595,10 @@ const ProductListRow = ({ product }) => {
                   {cartItem.quantity}
                 </span>
                 <button
-                  onClick={() => updateQuantity(product.id, 1)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    updateQuantity(cartId, 1);
+                  }}
                   className="w-7 h-7 flex items-center justify-center hover:bg-gray-200 rounded-full transition-all text-gray-600"
                 >
                   <FiPlus size={11} />
@@ -571,6 +607,7 @@ const ProductListRow = ({ product }) => {
             ) : (
               <button
                 onClick={handleAdd}
+                title={(sizes.length > 0 || colors.length > 0) ? "Select options" : "Add to Cart"}
                 className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap shrink-0 bg-himbalin-gold text-himbalin-dark hover:bg-yellow-500"
               >
                 <FiShoppingCart size={12} />
@@ -702,6 +739,57 @@ const ProductListRow = ({ product }) => {
 
                   {/* Divider */}
                   <div className="w-16 h-1 bg-[#F4A623] rounded-full" />
+
+                  {/* Variants */}
+                  {(sizes.length > 0 || colors.length > 0) && (
+                    <div className="space-y-4 pt-2">
+                      {sizes.length > 0 && (
+                        <div>
+                          <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                            Select Size
+                          </h4>
+                          <div className="flex flex-wrap gap-2">
+                            {sizes.map((size) => (
+                              <button
+                                key={size}
+                                onClick={() => setSelectedSize(size)}
+                                className={`px-4 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                                  selectedSize === size
+                                    ? "bg-himbalin-dark text-himbalin-gold border-himbalin-dark"
+                                    : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
+                                }`}
+                              >
+                                {size}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {colors.length > 0 && (
+                        <div>
+                          <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                            Select Color
+                          </h4>
+                          <div className="flex flex-wrap gap-2">
+                            {colors.map((color) => (
+                              <button
+                                key={color}
+                                onClick={() => setSelectedColor(color)}
+                                className={`px-4 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                                  selectedColor === color
+                                    ? "bg-himbalin-dark text-himbalin-gold border-himbalin-dark"
+                                    : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
+                                }`}
+                              >
+                                {color}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Description */}
                   <div className="space-y-2">

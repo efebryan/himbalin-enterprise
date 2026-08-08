@@ -202,6 +202,12 @@ const Checkout = () => {
                       <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-lg" />
                       <div className="flex-1">
                         <h4 className="text-sm font-bold text-[#1a1a1a] line-clamp-1">{item.name}</h4>
+                        {(item.selectedSize || item.selectedColor) && (
+                          <p className="text-[10px] text-gray-400 mt-0.5">
+                            {item.selectedSize && <span className="mr-2">Size: {item.selectedSize}</span>}
+                            {item.selectedColor && <span>Color: {item.selectedColor}</span>}
+                          </p>
+                        )}
                         <p className="text-xs text-gray-500 mt-1">
                           Qty: {item.quantity} {item.priceUnit ? `(${item.priceUnit})` : ""}
                         </p>

@@ -19,6 +19,8 @@ create table if not exists products (
   rating        numeric(2,1) default 5.0,
   reviews       integer default 0,
   image_url     text,
+  sizes         jsonb,
+  colors        jsonb,
   created_at    timestamptz default now()
 );
 
