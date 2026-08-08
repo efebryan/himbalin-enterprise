@@ -1,16 +1,9 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { formatPrice } from "../lib/formatCurrency";
 
 const OrderItems = ({ items }) => {
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
-  const formatPrice = (value) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 0
-    }).format(value);
-  };
 
   return (
     <motion.div

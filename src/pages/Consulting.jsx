@@ -5,102 +5,51 @@ import { FiCalendar, FiHome, FiBriefcase, FiStar, FiCheck, FiArrowRight } from "
 import PageLoader from "../components/PageLoader";
 import { AnimatePresence, motion } from "framer-motion";
 
-const services = [
-  {
-    id: 1,
-    icon: <FiHome size={28} />,
-    badge: "START HERE",
-    name: "Initial Design Consultation",
-    description: "A focused 1-hour video call to explore your vision, palette preferences, and spatial goals. Includes a personalised follow-up summary.",
-    price: 150,
-    duration: "1 hour",
-    highlights: ["Vision & mood board review", "Space assessment", "Follow-up PDF summary"],
-  },
-  {
-    id: 2,
-    icon: <FiHome size={28} />,
-    badge: null,
-    name: "Full Home Makeover Plan",
-    description: "A comprehensive redesign package covering every room — layout plans, material selections, and curated furniture mood boards.",
-    price: 1200,
-    duration: "2–4 weeks",
-    highlights: ["Full floor layout", "Mood boards per room", "Sourcing list included"],
-  },
-  {
-    id: 3,
-    icon: <FiBriefcase size={28} />,
-    badge: null,
-    name: "Office Ergonomics Audit",
-    description: "Evaluate your workspace and get expert recommendations on desk setups, lighting, and ergonomic gear for peak productivity.",
-    price: 350,
-    duration: "Half-day",
-    highlights: ["On-site or remote audit", "Equipment recommendations", "Wellness-first approach"],
-  },
-  {
-    id: 4,
-    icon: <FiStar size={28} />,
-    badge: "POPULAR",
-    name: "Color Psychology Session",
-    description: "Unlock the science of colour in your space. Select the ideal palette for mood, productivity, and brand identity.",
-    price: 250,
-    duration: "2 hours",
-    highlights: ["Scientifically-backed palettes", "Room-by-room recommendations", "Digital swatch deck"],
-  },
-  {
-    id: 5,
-    icon: <FiHome size={28} />,
-    badge: null,
-    name: "Outdoor Living Design",
-    description: "Transform patios, gardens, and terraces into lush, functional extensions of your home — including artificial grass options.",
-    price: 600,
-    duration: "1–2 weeks",
-    highlights: ["Landscaping plan", "Material sourcing", "Artificial grass integration"],
-  },
-  {
-    id: 6,
-    icon: <FiBriefcase size={28} />,
-    badge: "B2B",
-    name: "Commercial Space Plan",
-    description: "A full interior strategy for retail stores, restaurants, or offices — maximising flow, branding, and customer experience.",
-    price: 1800,
-    duration: "3–6 weeks",
-    highlights: ["Traffic flow analysis", "Brand-aligned design", "Contractor coordination"],
-  },
-  {
-    id: 7,
-    icon: <FiStar size={28} />,
-    badge: null,
-    name: "Art & Décor Sourcing",
-    description: "We curate bespoke art selections and décor pieces that fit your aesthetic, budget, and cultural narrative.",
-    price: 450,
-    duration: "1–2 weeks",
-    highlights: ["Access to exclusive artists", "Delivery & placement", "Investment art guidance"],
-  },
-  {
-    id: 8,
-    icon: <FiCalendar size={28} />,
-    badge: "PREMIUM",
-    name: "VIP Project Management",
-    description: "End-to-end management of your complete interior project — from concept to final walkthrough. We handle everything.",
-    price: 3500,
-    duration: "Ongoing",
-    highlights: ["Dedicated project manager", "Weekly progress reports", "Quality-checked delivery"],
-  },
-];
+import { supabase } from "../lib/supabase";
+import { formatPrice } from "../lib/formatCurrency";
 
-const trustPoints = [
-  { label: "Projects Completed", value: "500+" },
-  { label: "Countries Served", value: "12" },
-  { label: "Years of Experience", value: "15+" },
-  { label: "Client Satisfaction", value: "98%" },
-];
+const IconMap = {
+  FiHome,
+  FiBriefcase,
+  FiStar,
+  FiCalendar,
+  FiCheck
+};
 
 const Consulting = () => {
   const [loading, setLoading] = useState(true);
+  const [data, setData] = useState({
+    heroTitle: "Consulting Services",
+    heroDescription: "Partner with our award-winning interior design experts to transform your home, office, or commercial space into something extraordinary.",
+    services: [],
+    trustPoints: [
+      { label: "Projects Completed", value: "500+" },
+      { label: "Countries Served", value: "12" },
+      { label: "Years of Experience", value: "15+" },
+      { label: "Client Satisfaction", value: "98%" },
+    ]
+  });
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1500);
-    return () => clearTimeout(timer);
+    const fetchContent = async () => {
+      try {
+        const { data: res, error } = await supabase.from("consulting_content").select("*").limit(1).maybeSingle();
+        if (error) throw error;
+        if (res) {
+          setData({
+            heroTitle: res.hero_title || "Consulting Services",
+            heroDescription: res.hero_description || "Partner with our award-winning interior design experts to transform your home, office, or commercial space into something extraordinary.",
+            services: res.services || [],
+            trustPoints: res.trust_points || []
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch consulting content", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchContent();
   }, []);
 
   return (
@@ -130,10 +79,10 @@ const Consulting = () => {
               </nav>
               <div className="max-w-3xl">
                 <h1 className="font-serif text-5xl md:text-7xl text-white font-bold mb-6">
-                  Consulting Services
+                  {data.heroTitle}
                 </h1>
                 <p className="font-sans text-white/70 text-lg max-w-2xl leading-relaxed">
-                  Partner with our award-winning interior design experts to transform your home, office, or commercial space into something extraordinary.
+                  {data.heroDescription}
                 </p>
                 <div className="mt-10 flex flex-col sm:flex-row gap-4">
                   <a
@@ -156,8 +105,8 @@ const Consulting = () => {
           {/* Trust Strip */}
           <div className="bg-himbalin-dark/5 border-y border-himbalin-dark/10 py-10 px-8 mb-16">
             <div className="container mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-              {trustPoints.map((tp) => (
-                <div key={tp.label}>
+              {data.trustPoints.map((tp, i) => (
+                <div key={i}>
                   <p className="font-serif text-4xl font-black text-himbalin-dark mb-2">{tp.value}</p>
                   <p className="font-sans text-xs text-himbalin-dark/60 uppercase tracking-[0.15em] font-bold">{tp.label}</p>
                 </div>
@@ -178,7 +127,9 @@ const Consulting = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {services.map((service, i) => (
+              {data.services.map((service, i) => {
+                const IconComponent = IconMap[service.icon] || FiHome;
+                return (
                 <motion.div
                   key={service.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -190,7 +141,7 @@ const Consulting = () => {
                   {/* Header */}
                   <div className="flex items-start justify-between mb-6">
                     <div className="w-14 h-14 rounded-xl bg-himbalin-gold/10 flex items-center justify-center text-himbalin-gold group-hover:bg-himbalin-gold group-hover:text-himbalin-dark transition-all duration-300 shrink-0">
-                      {service.icon}
+                      <IconComponent size={28} />
                     </div>
                     {service.badge && (
                       <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-himbalin-dark text-himbalin-gold border border-himbalin-gold/20">
@@ -222,7 +173,7 @@ const Consulting = () => {
                     <div>
                       <p className="font-sans text-[10px] uppercase tracking-widest text-himbalin-dark/40 font-bold mb-1">Starting from</p>
                       <p className="font-serif text-2xl font-black text-himbalin-dark">
-                        ${service.price.toLocaleString()}
+                        {formatPrice(service.price)}
                       </p>
                       <p className="font-sans text-[11px] text-himbalin-dark/40">{service.duration}</p>
                     </div>
@@ -234,7 +185,8 @@ const Consulting = () => {
                     </a>
                   </div>
                 </motion.div>
-              ))}
+                );
+              })}
             </div>
           </section>
 

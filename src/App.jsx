@@ -29,6 +29,7 @@ import Notifications from "./pages/admin/Notifications";
 import Shipments from "./pages/admin/Shipments";
 import Invoices from "./pages/admin/Invoices";
 import EmailClients from "./pages/admin/EmailClients";
+import ConsultingSettings from "./pages/admin/ConsultingSettings";
 import TrackOrder from "./pages/TrackOrder";
 import PublicReviews from "./pages/PublicReviews";
 import ScrollToTop from "./components/ScrollToTop";
@@ -80,6 +81,7 @@ function App() {
               <Route path="shipment"  element={<Shipments />} />
               <Route path="invoice"   element={<Invoices />} />
               <Route path="email"     element={<EmailClients />} />
+              <Route path="consulting" element={<ConsultingSettings />} />
               <Route path="notifications" element={<Notifications />} />
             </Route>
 
