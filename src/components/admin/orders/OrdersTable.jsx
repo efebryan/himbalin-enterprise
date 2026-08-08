@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { FiEye, FiFilter, FiChevronDown, FiChevronUp, FiX, FiDownload, FiRefreshCw, FiSearch } from "react-icons/fi";
+import { FiEye, FiFilter, FiChevronDown, FiChevronUp, FiX, FiDownload, FiRefreshCw, FiSearch, FiTrash2 } from "react-icons/fi";
 import ViewOrderModal from "./ViewOrderModal";
 import Toast from "../../admin/products/Toast";
-import { getOrders, updateOrderStatus } from "../../../lib/api";
+import { getOrders, updateOrderStatus, deleteOrder } from "../../../lib/api";
 import { formatPrice } from "../../../lib/formatCurrency";
 
 const ORDER_STATUSES = ["All Status", "Pending", "Processing", "Shipped", "Delivered", "Cancelled"];
@@ -13,6 +13,7 @@ const OrdersTable = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewOrder, setViewOrder] = useState(null);
+  const [orderToDelete, setOrderToDelete] = useState(null);
   const [toast, setToast] = useState({ visible: false, message: "", type: "success" });
 
   // Filters & Search
@@ -224,6 +225,28 @@ const OrdersTable = () => {
         message: "Failed to update order status.",
         type: "error",
       });
+    }
+  };
+
+  const handleDeleteOrder = async () => {
+    if (!orderToDelete) return;
+    try {
+      await deleteOrder(orderToDelete.id);
+      await fetchOrders();
+      setToast({
+        visible: true,
+        message: "Order deleted successfully.",
+        type: "success",
+      });
+    } catch (err) {
+      console.error("Failed to delete order:", err);
+      setToast({
+        visible: true,
+        message: "Failed to delete order.",
+        type: "error",
+      });
+    } finally {
+      setOrderToDelete(null);
     }
   };
 
@@ -557,6 +580,13 @@ const OrdersTable = () => {
                         >
                           <FiEye className="text-lg" />
                         </button>
+                        <button
+                          onClick={() => setOrderToDelete(order)}
+                          title="Delete order"
+                          className="text-gray-400 hover:text-red-500 transition-colors p-1.5 rounded-md hover:bg-red-50 ml-1"
+                        >
+                          <FiTrash2 className="text-lg" />
+                        </button>
                       </td>
                     </tr>
                   );
@@ -581,6 +611,43 @@ const OrdersTable = () => {
         onClose={() => setViewOrder(null)}
         onUpdateStatus={handleUpdateOrderStatus}
       />
+
+      {/* Delete Confirmation Modal */}
+      {orderToDelete && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-6 md:p-8 max-w-md w-full shadow-2xl animate-fade-in text-center relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-red-500"></div>
+            
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FiTrash2 className="text-2xl text-red-500" />
+            </div>
+            
+            <h3 className="text-2xl font-serif font-bold text-[#1a1a1a] mb-2">
+              Delete Order
+            </h3>
+            
+            <p className="text-sm text-gray-500 mb-8 leading-relaxed px-4">
+              Are you sure you want to delete order <span className="font-bold text-[#1a1a1a]">#{orderToDelete.id.slice(0, 8)}</span>? 
+              This action cannot be undone and will permanently remove this order from the database.
+            </p>
+            
+            <div className="flex items-center gap-3 w-full">
+              <button
+                onClick={() => setOrderToDelete(null)}
+                className="flex-1 py-3 px-4 rounded-xl border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteOrder}
+                className="flex-1 py-3 px-4 rounded-xl bg-red-500 text-white font-bold text-sm shadow-md shadow-red-500/25 hover:bg-red-600 transition-colors"
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Toast */}
       <Toast

@@ -424,4 +424,16 @@ export async function deleteCategory(id, name) {
   }
 }
 
+/** Delete an order by ID */
+export async function deleteOrder(id) {
+  const { error } = await supabase
+    .from('orders')
+    .delete()
+    .eq('id', id);
 
+  if (error) {
+    console.error('Error deleting order:', error);
+    throw error;
+  }
+  return true;
+}
