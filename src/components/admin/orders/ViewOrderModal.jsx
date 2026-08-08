@@ -1,6 +1,7 @@
 import React from "react";
 import { RiCloseLine } from "react-icons/ri";
 import { FiPackage, FiTruck, FiCheckCircle, FiXCircle } from "react-icons/fi";
+import { formatPrice } from "../../../lib/formatCurrency";
 
 const ViewOrderModal = ({ order, isOpen, onClose, onUpdateStatus }) => {
   if (!isOpen || !order) return null;
@@ -153,6 +154,45 @@ const ViewOrderModal = ({ order, isOpen, onClose, onUpdateStatus }) => {
                 </p>
               </div>
             </div>
+
+            {/* Ordered Items List */}
+            {order.rawItems && order.rawItems.length > 0 && (
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">
+                  Ordered Items
+                </p>
+                <div className="space-y-3">
+                  {order.rawItems.map((item, idx) => (
+                    <div key={idx} className="flex gap-4 items-center bg-gray-50 p-3 rounded-xl border border-gray-100">
+                      <div className="w-16 h-16 rounded-lg bg-gray-200 overflow-hidden shrink-0 flex items-center justify-center">
+                        {item.image ? (
+                          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <FiPackage className="text-gray-400 text-xl" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-bold text-[#2B1A12] truncate">{item.name}</h4>
+                        <div className="text-xs text-gray-500 mt-0.5 flex flex-wrap gap-x-3 gap-y-1">
+                          <span>Qty: <strong className="text-[#2B1A12]">{item.quantity}</strong></span>
+                          <span>Price: <strong className="text-[#2B1A12]">{formatPrice(item.price)}</strong></span>
+                          {item.selectedSize && <span>Size: <strong className="text-[#2B1A12]">{item.selectedSize}</strong></span>}
+                          {item.selectedColor && (
+                            <span className="flex items-center gap-1">
+                              Color: 
+                              <span 
+                                className="w-3 h-3 rounded-full border border-gray-200 inline-block" 
+                                style={{ backgroundColor: item.selectedColor }}
+                              />
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Order Progress Tracker */}
             {!cancelledOrFailed && (

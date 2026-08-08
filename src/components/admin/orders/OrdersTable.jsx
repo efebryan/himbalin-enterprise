@@ -573,6 +573,7 @@ const OrdersTable = () => {
                               paymentStatus: paymentStatus,
                               orderStatus: orderStatus,
                               items: getItemCount(order.items),
+                              rawItems: order.items,
                             })
                           }
                           title="View order details"
